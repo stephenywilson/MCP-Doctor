@@ -10,349 +10,344 @@ function esc(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function severityColor(s: Severity): string {
-  switch (s) {
-    case 'HIGH': return '#f85149';
-    case 'MEDIUM': return '#d29922';
-    case 'LOW': return '#388bfd';
-  }
+function sevColor(s: Severity): string {
+  return s === 'HIGH' ? '#f85149' : s === 'MEDIUM' ? '#d29922' : '#388bfd';
 }
 
-function statusColor(s: ReportStatus): string {
-  switch (s) {
-    case 'OK': return '#3fb950';
-    case 'NEEDS_REVIEW': return '#d29922';
-    case 'BROKEN': return '#f85149';
-    case 'RISKY': return '#d29922';
-  }
+function scoreColor(n: number): string {
+  return n >= 80 ? '#3fb950' : n >= 50 ? '#d29922' : '#f85149';
 }
 
-function statusLabel(s: ReportStatus): string {
-  switch (s) {
-    case 'OK': return 'OK';
-    case 'NEEDS_REVIEW': return 'NEEDS REVIEW';
-    case 'BROKEN': return 'BROKEN';
-    case 'RISKY': return 'RISKY';
-  }
-}
-
-function scoreColor(score: number): string {
-  if (score >= 80) return '#3fb950';
-  if (score >= 50) return '#d29922';
-  return '#f85149';
+interface StatusMeta { color: string; label: string; desc: string }
+function statusMeta(s: ReportStatus): StatusMeta {
+  const M: Record<ReportStatus, StatusMeta> = {
+    OK:           { color: '#3fb950', label: 'OK',           desc: 'All scanned configs look healthy.' },
+    NEEDS_REVIEW: { color: '#d29922', label: 'NEEDS REVIEW', desc: 'Some issues may cause problems. Review findings below.' },
+    BROKEN:       { color: '#f85149', label: 'BROKEN',       desc: 'Critical issues detected. MCP servers are likely not starting. Fix HIGH findings first.' },
+    RISKY:        { color: '#d29922', label: 'RISKY',        desc: 'Security-sensitive configuration detected. Review permissions and tokens.' },
+  };
+  return M[s];
 }
 
 function findingCard(f: Finding): string {
-  const color = severityColor(f.severity);
-  const fixHtml = f.suggestedFix
-    ? `<div class="fix-block"><div class="fix-label">Suggested Fix</div><pre class="fix-code">${esc(f.suggestedFix)}</pre></div>`
+  const c = sevColor(f.severity);
+  const evHtml = f.evidence
+    ? `<div class="fc-ev"><div class="fc-ev-lbl">Evidence</div><code>${esc(f.evidence)}</code></div>`
     : '';
-  const evidenceHtml = f.evidence
-    ? `<div class="evidence-block"><span class="evidence-label">Evidence:</span> <code>${esc(f.evidence)}</code></div>`
+  const fxHtml = f.suggestedFix
+    ? `<div class="fc-fx"><div class="fc-fx-lbl">Suggested fix</div><pre class="fc-fx-pre">${esc(f.suggestedFix)}</pre></div>`
     : '';
-  const serverHtml = f.server
-    ? `<span class="tag">${esc(f.server)}</span>`
-    : '';
+  const chips = [
+    `<span class="chip">${esc(f.id)}</span>`,
+    `<span class="chip">${esc(f.category)}</span>`,
+    f.server ? `<span class="chip chip-srv">${esc(f.server)}</span>` : '',
+  ].join('');
 
-  return `
-<div class="finding-card" style="border-left: 3px solid ${color}">
-  <div class="finding-header">
-    <span class="severity-badge" style="background:${color}20;color:${color};border:1px solid ${color}40">${f.severity}</span>
-    <span class="finding-title">${esc(f.title)}</span>
-    <span class="finding-meta">
-      <span class="tag tag-muted">${esc(f.id)}</span>
-      <span class="tag tag-muted">${esc(f.category)}</span>
-      ${serverHtml}
-    </span>
+  return `<div class="fc" style="border-left-color:${c}">
+  <div class="fc-head">
+    <span class="fc-sev" style="color:${c}">${f.severity}</span>
+    <span class="fc-title">${esc(f.title)}</span>
   </div>
-  ${evidenceHtml}
-  ${fixHtml}
+  ${evHtml}${fxHtml}
+  <div class="fc-chips">${chips}</div>
 </div>`;
 }
 
 function serverCard(srv: ScanReport['servers'][0]): string {
-  const hasIssues = srv.findings.length > 0;
-  const highCount = srv.findings.filter((f) => f.severity === 'HIGH').length;
-  const medCount = srv.findings.filter((f) => f.severity === 'MEDIUM').length;
-
-  let statusIcon = '✅';
-  let statusText = 'No issues';
-  if (highCount > 0) { statusIcon = '❌'; statusText = `${highCount} HIGH`; }
-  else if (medCount > 0) { statusIcon = '⚠️'; statusText = `${medCount} MEDIUM`; }
+  const h = srv.findings.filter((f) => f.severity === 'HIGH').length;
+  const m = srv.findings.filter((f) => f.severity === 'MEDIUM').length;
+  const [badge, bc] = h > 0
+    ? [`${h} HIGH`, '#f85149']
+    : m > 0 ? [`${m} MEDIUM`, '#d29922']
+    : srv.findings.length > 0 ? [`${srv.findings.length} LOW`, '#388bfd']
+    : ['OK', '#3fb950'];
 
   const envRows = Object.entries(srv.config.env)
-    .map(([k, v]) => `<tr><td class="env-key">${esc(k)}</td><td class="env-val">${esc(maskSecret(k, v))}</td></tr>`)
+    .map(([k, v]) => `<tr><td class="ev-k">${esc(k)}</td><td class="ev-v">${esc(maskSecret(k, v))}</td></tr>`)
     .join('');
-
-  const envTable = envRows
-    ? `<table class="env-table"><thead><tr><th>Env Key</th><th>Value (masked)</th></tr></thead><tbody>${envRows}</tbody></table>`
+  const envHtml = envRows ? `<table class="ev-tbl"><tbody>${envRows}</tbody></table>` : '';
+  const argsHtml = srv.config.args.length > 0
+    ? `<div class="sc-row"><span class="sc-lbl">args</span><code>${esc(JSON.stringify(srv.config.args))}</code></div>`
     : '';
 
-  return `
-<div class="server-card">
-  <div class="server-header">
-    <span class="server-name">${esc(srv.name)}</span>
-    <span class="server-status">${statusIcon} ${esc(statusText)}</span>
+  return `<div class="sc">
+  <div class="sc-head">
+    <code class="sc-name">${esc(srv.name)}</code>
+    <span class="sc-badge" style="color:${bc}">${esc(badge)}</span>
   </div>
-  <div class="server-body">
-    <div class="cmd-line"><span class="cmd-label">command</span> <code>${esc(srv.config.command || '(none)')}</code>
-    ${srv.config.args.length > 0 ? `<span class="cmd-label" style="margin-left:8px">args</span> <code>${esc(JSON.stringify(srv.config.args))}</code>` : ''}</div>
-    ${envTable}
+  <div class="sc-body">
+    <div class="sc-row"><span class="sc-lbl">command</span><code>${esc(srv.config.command || '(none)')}</code></div>
+    ${argsHtml}${envHtml}
   </div>
 </div>`;
 }
 
 export function generateHtml(report: ScanReport): string {
-  const scoreCol = scoreColor(report.score);
-  const statusCol = statusColor(report.status);
-  const highFindings = report.allFindings.filter((f) => f.severity === 'HIGH');
-  const medFindings = report.allFindings.filter((f) => f.severity === 'MEDIUM');
-  const lowFindings = report.allFindings.filter((f) => f.severity === 'LOW');
+  const sm = statusMeta(report.status);
+  const sc = scoreColor(report.score);
 
-  const serverCardsHtml = report.servers.map(serverCard).join('\n');
+  const highs = report.allFindings.filter((f) => f.severity === 'HIGH');
+  const meds  = report.allFindings.filter((f) => f.severity === 'MEDIUM');
+  const lows  = report.allFindings.filter((f) => f.severity === 'LOW');
 
-  const findingsHtml = [
-    highFindings.length > 0 ? `<div class="findings-group">
-      <div class="findings-group-header" style="color:#f85149">🔴 HIGH — ${highFindings.length} finding${highFindings.length > 1 ? 's' : ''}</div>
-      ${highFindings.map(findingCard).join('')}
-    </div>` : '',
-    medFindings.length > 0 ? `<div class="findings-group">
-      <div class="findings-group-header" style="color:#d29922">🟡 MEDIUM — ${medFindings.length} finding${medFindings.length > 1 ? 's' : ''}</div>
-      ${medFindings.map(findingCard).join('')}
-    </div>` : '',
-    lowFindings.length > 0 ? `<div class="findings-group">
-      <div class="findings-group-header" style="color:#388bfd">🔵 LOW — ${lowFindings.length} finding${lowFindings.length > 1 ? 's' : ''}</div>
-      ${lowFindings.map(findingCard).join('')}
-    </div>` : '',
-    report.allFindings.length === 0 ? `<div class="no-findings">✅ No issues detected — all scanned configs look good!</div>` : '',
-  ].join('');
+  // Top 3 actionable fixes from HIGH then MEDIUM
+  const topFixes: Finding[] = [];
+  for (const f of [...highs, ...meds]) {
+    if (topFixes.length >= 3) break;
+    if (f.suggestedFix) topFixes.push(f);
+  }
+
+  const topFixesHtml = topFixes.length > 0
+    ? topFixes.map((f, i) => {
+        const hint = esc(f.suggestedFix!.split('\n')[0]);
+        const srv = f.server ? ` <span class="fix-srv">${esc(f.server)}</span>` : '';
+        return `<div class="fix-item">
+          <span class="fix-num">${i + 1}</span>
+          <div class="fix-body">
+            <div class="fix-title">${esc(f.title)}${srv}</div>
+            <div class="fix-hint">${hint}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : `<div class="no-fixes">No critical fixes needed.</div>`;
 
   const configRows = report.configs.map((cfg) => {
-    const status = cfg.notFound
-      ? `<span style="color:#d29922">⚠️ Not found</span>`
+    const st = cfg.notFound
+      ? `<span style="color:#d29922">Not found</span>`
       : cfg.parseError
-      ? `<span style="color:#f85149">❌ ${esc(cfg.parseError)}</span>`
-      : `<span style="color:#3fb950">✅ Valid (${Object.keys(cfg.servers ?? {}).length} servers)</span>`;
-    return `<tr><td>${esc(cfg.clientLabel)}</td><td class="mono">${esc(cfg.path)}</td><td>${status}</td></tr>`;
+      ? `<span style="color:#f85149">${esc(cfg.parseError)}</span>`
+      : `<span style="color:#3fb950">${Object.keys(cfg.servers ?? {}).length} server(s) — valid JSON</span>`;
+    return `<tr>
+      <td class="cft-l">${esc(cfg.clientLabel)}</td>
+      <td class="cft-p"><code>${esc(cfg.path)}</code></td>
+      <td class="cft-s">${st}</td>
+    </tr>`;
   }).join('');
 
-  const circumference = 2 * Math.PI * 54;
-  const offset = circumference - (report.score / 100) * circumference;
+  const findingsHtml = [
+    highs.length ? `<div class="sg"><div class="sg-lbl" style="color:#f85149">HIGH — ${highs.length} finding${highs.length > 1 ? 's' : ''}</div>${highs.map(findingCard).join('')}</div>` : '',
+    meds.length  ? `<div class="sg"><div class="sg-lbl" style="color:#d29922">MEDIUM — ${meds.length} finding${meds.length > 1 ? 's' : ''}</div>${meds.map(findingCard).join('')}</div>` : '',
+    lows.length  ? `<div class="sg"><div class="sg-lbl" style="color:#388bfd">LOW — ${lows.length} finding${lows.length > 1 ? 's' : ''}</div>${lows.map(findingCard).join('')}</div>` : '',
+    !report.allFindings.length ? `<div class="no-findings">No issues found — all scanned configs look healthy.</div>` : '',
+  ].join('');
+
+  const serversHtml = report.servers.length
+    ? report.servers.map(serverCard).join('')
+    : `<div class="empty">No servers found in scanned configs.</div>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MCP Doctor Report</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;
-  --text:#c9d1d9;--text-muted:#8b949e;--text-dim:#484f58;
-  --accent:#58a6ff;--radius:6px;--font-mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+  --bg:#0d1117;
+  --s1:#161b22;
+  --s2:#1c2128;
+  --s3:#21262d;
+  --b1:#30363d;
+  --b2:#21262d;
+  --t1:#e6edf3;
+  --t2:#c9d1d9;
+  --t3:#8b949e;
+  --t4:#484f58;
+  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
 }
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  font-size:14px;line-height:1.6;min-height:100vh}
-a{color:var(--accent);text-decoration:none}
-code{font-family:var(--font-mono);font-size:12px;background:#21262d;padding:1px 5px;border-radius:3px;color:#e6edf3}
-pre{font-family:var(--font-mono);font-size:12px;overflow-x:auto}
-.mono{font-family:var(--font-mono);font-size:12px}
+body{background:var(--bg);color:var(--t2);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:12px;background:var(--s3);padding:2px 5px;border-radius:3px;color:var(--t1)}
 
-.header{background:linear-gradient(135deg,#161b22 0%,#1c2128 100%);
-  border-bottom:1px solid var(--border);padding:32px 40px}
-.header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px}
-.logo{font-size:28px;font-weight:700;color:#e6edf3;letter-spacing:-0.5px}
-.logo span{color:var(--accent)}
-.version-badge{font-size:11px;background:#21262d;color:var(--text-muted);
-  border:1px solid var(--border);padding:2px 8px;border-radius:20px}
-.timestamp{margin-left:auto;font-size:12px;color:var(--text-muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 64px}
 
-.main{max-width:1100px;margin:32px auto;padding:0 40px}
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:1px solid var(--b1);margin-bottom:28px}
+.hdr-brand{display:flex;flex-direction:column;gap:3px}
+.hdr-title{font-size:18px;font-weight:700;color:var(--t1);letter-spacing:-0.2px}
+.hdr-sub{font-size:13px;color:var(--t3)}
+.hdr-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.hdr-ver{font-size:11px;background:var(--s3);color:var(--t3);border:1px solid var(--b1);padding:2px 8px;border-radius:10px}
+.hdr-ts{font-size:12px;color:var(--t3);font-family:var(--mono);white-space:nowrap}
 
-.score-section{display:grid;grid-template-columns:auto 1fr auto;gap:24px;
-  align-items:center;background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:28px 32px;margin-bottom:24px}
-.score-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-.score-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
-.score-ring{transform:rotate(-90deg)}
-.score-text{font-size:22px;font-weight:700;fill:${scoreCol}}
-.score-sub{font-size:10px;fill:var(--text-muted)}
+/* Hero */
+.hero{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--b1);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.hero-left{padding:28px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;gap:12px}
+.hero-right{padding:28px;background:var(--s2);display:flex;flex-direction:column}
+.status-badge{font-size:26px;font-weight:700;letter-spacing:-0.5px;line-height:1}
+.score-wrap{display:flex;align-items:baseline;gap:3px}
+.score-num{font-size:52px;font-weight:700;letter-spacing:-3px;line-height:1}
+.score-denom{font-size:20px;color:var(--t3);font-weight:400}
+.score-bar-wrap{height:3px;background:var(--b1);border-radius:2px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px}
+.status-desc{font-size:13px;color:var(--t3);line-height:1.5}
+.fixes-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:14px}
+.fix-item{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--b2)}
+.fix-item:last-of-type{border-bottom:none}
+.fix-num{flex-shrink:0;width:20px;height:20px;background:var(--s3);border:1px solid var(--b1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--t4);margin-top:1px}
+.fix-body{display:flex;flex-direction:column;gap:3px}
+.fix-title{font-size:13px;font-weight:500;color:var(--t1);line-height:1.4}
+.fix-hint{font-size:12px;color:var(--t3);line-height:1.4}
+.fix-srv{font-size:10px;background:var(--s3);color:var(--t4);border:1px solid var(--b1);padding:1px 6px;border-radius:10px;font-family:var(--mono);vertical-align:middle;margin-left:3px}
+.no-fixes{font-size:13px;color:#3fb950;padding:12px 0}
 
-.status-info{padding-left:8px}
-.status-badge{display:inline-flex;align-items:center;gap:8px;
-  font-size:22px;font-weight:700;color:${statusCol}}
-.status-desc{color:var(--text-muted);font-size:13px;margin-top:4px}
+/* Stats strip */
+.stats{display:flex;align-items:center;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:16px 0;margin-bottom:40px}
+.stat{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.stat-sep{width:1px;height:30px;background:var(--b1);flex-shrink:0}
+.stat-n{font-size:24px;font-weight:700;line-height:1;color:var(--t1)}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3)}
 
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.stat-card{background:var(--surface2);border:1px solid var(--border);
-  border-radius:var(--radius);padding:14px 16px;text-align:center}
-.stat-num{font-size:28px;font-weight:700}
-.stat-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+/* Section */
+.section{margin-bottom:44px}
+.sec-title{font-size:14px;font-weight:600;color:var(--t1);padding-bottom:10px;border-bottom:1px solid var(--b1);margin-bottom:18px}
 
-.section{margin-bottom:32px}
-.section-title{font-size:16px;font-weight:600;color:#e6edf3;
-  padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:16px}
+/* Severity group */
+.sg{margin-bottom:24px}
+.sg-lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
 
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:10px 12px;color:var(--text-muted);
-  font-size:11px;text-transform:uppercase;letter-spacing:0.5px;
-  border-bottom:1px solid var(--border);background:var(--surface2)}
-td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}
-tr:last-child td{border-bottom:none}
+/* Finding card */
+.fc{background:var(--s1);border:1px solid var(--b1);border-left-width:4px;border-radius:0 6px 6px 0;padding:14px 16px;margin-bottom:8px}
+.fc-head{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+.fc-sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.fc-title{font-size:14px;font-weight:500;color:var(--t1);line-height:1.4;flex:1;min-width:0}
+.fc-ev{background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:8px 10px;margin-bottom:9px}
+.fc-ev code{background:transparent;padding:0;color:var(--t2);word-break:break-all;font-size:12px}
+.fc-ev-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t4);margin-bottom:4px}
+.fc-fx{margin-bottom:10px}
+.fc-fx-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#3fb950;margin-bottom:5px}
+.fc-fx-pre{background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:4px;padding:10px 12px;color:#7ee787;font-family:var(--mono);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.fc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{font-size:10px;font-family:var(--mono);background:var(--s3);color:var(--t4);border:1px solid var(--b2);padding:2px 7px;border-radius:10px;white-space:nowrap}
+.chip-srv{color:var(--t3);background:var(--s2);border-color:var(--b1)}
+.no-findings{padding:18px 20px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:6px;color:#3fb950;font-size:13px}
 
-.server-card{background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
-.server-header{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
-.server-name{font-weight:600;color:#e6edf3;font-family:var(--font-mono);font-size:13px}
-.server-status{font-size:12px;color:var(--text-muted)}
-.server-body{padding:14px 16px}
-.cmd-line{margin-bottom:10px;font-size:13px}
-.cmd-label{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-right:4px}
-.env-table{font-size:12px;margin-top:8px;border:1px solid var(--border);border-radius:4px}
-.env-table th{background:#1c2128}
-.env-key{font-family:var(--font-mono);color:var(--accent)}
-.env-val{font-family:var(--font-mono);color:var(--text-muted)}
+/* Server cards */
+.sc{background:var(--s1);border:1px solid var(--b1);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.sc-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--b1)}
+.sc-name{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--t1);background:transparent;padding:0}
+.sc-badge{font-size:11px;font-weight:600}
+.sc-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.sc-row{display:flex;align-items:baseline;gap:8px;font-size:13px;flex-wrap:wrap}
+.sc-lbl{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0}
 
-.finding-card{background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);margin-bottom:10px;padding:14px 16px;overflow:hidden}
-.finding-header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.severity-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;
-  text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
-.finding-title{font-size:13px;font-weight:500;color:#e6edf3;flex:1}
-.finding-meta{display:flex;gap:6px;flex-wrap:wrap}
-.tag{font-size:10px;background:#21262d;color:var(--text-muted);
-  border:1px solid var(--border);padding:2px 7px;border-radius:20px;white-space:nowrap}
-.tag-muted{color:var(--text-dim)}
-.evidence-block{font-size:12px;color:var(--text-muted);margin-bottom:8px;
-  background:#21262d;border-radius:4px;padding:8px 10px}
-.evidence-block code{background:transparent;padding:0;font-size:12px}
-.evidence-label{color:var(--text-dim);font-size:11px;font-weight:600}
-.fix-block{margin-top:8px}
-.fix-label{font-size:11px;color:#3fb950;font-weight:600;margin-bottom:4px;
-  text-transform:uppercase;letter-spacing:0.5px}
-.fix-code{background:#0d2611;border:1px solid #1a4a25;border-radius:4px;
-  padding:10px 12px;color:#7ee787;font-size:12px;white-space:pre-wrap;word-break:break-word}
+/* Env table */
+.ev-tbl{width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--b2);border-radius:4px;overflow:hidden;margin-top:2px}
+.ev-tbl td{padding:5px 10px;border-bottom:1px solid var(--b2);font-family:var(--mono)}
+.ev-tbl tr:last-child td{border-bottom:none}
+.ev-k{color:#79c0ff;width:40%}
+.ev-v{color:var(--t3)}
 
-.findings-group{margin-bottom:20px}
-.findings-group-header{font-size:13px;font-weight:600;margin-bottom:10px}
-.no-findings{background:var(--surface);border:1px solid #238636;border-radius:var(--radius);
-  padding:24px;text-align:center;color:#3fb950;font-size:15px}
+/* Config table */
+.cft{width:100%;border-collapse:collapse;font-size:13px}
+.cft th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--b1)}
+.cft td{padding:10px 12px;border-bottom:1px solid var(--b2);vertical-align:top}
+.cft tr:last-child td{border-bottom:none}
+.cft code{word-break:break-all}
 
-.footer{max-width:1100px;margin:0 auto;padding:24px 40px;
-  border-top:1px solid var(--border);color:var(--text-muted);font-size:12px;
-  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+/* Footer */
+.footer{padding-top:20px;border-top:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--t3)}
+.footer a{color:var(--t3)}
+.footer a:hover{color:#58a6ff}
+.empty{color:var(--t3);font-size:13px;padding:12px 0}
 
-@media(max-width:700px){
-  .header{padding:20px},
-  .main{padding:0 16px},
-  .score-section{grid-template-columns:1fr;text-align:center},
-  .stat-grid{grid-template-columns:1fr 1fr},
+@media(max-width:640px){
+  .hero{grid-template-columns:1fr}
+  .hero-left{border-right:none;border-bottom:1px solid var(--b1)}
+  .stats{flex-wrap:wrap;padding:12px 8px}
+  .stat{min-width:40%;padding:4px 0}
+  .stat-sep{display:none}
+  .page{padding:16px 16px 48px}
+  .hdr{flex-direction:column;gap:10px}
+  .hdr-meta{align-items:flex-start}
 }
 </style>
 </head>
 <body>
+<div class="page">
 
-<header class="header">
-  <div class="header-inner">
-    <div class="logo">MCP <span>Doctor</span></div>
-    <span class="version-badge">v0.1.0</span>
-    <div class="timestamp">${esc(report.timestamp)}</div>
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-title">MCP Doctor</div>
+    <div class="hdr-sub">Diagnose and fix broken MCP servers.</div>
+  </div>
+  <div class="hdr-meta">
+    <span class="hdr-ver">v0.1.0</span>
+    <span class="hdr-ts">${esc(report.timestamp)}</span>
   </div>
 </header>
 
-<main class="main">
-
-  <div class="score-section">
-    <div class="score-ring-wrap">
-      <div class="score-label">Health Score</div>
-      <svg class="score-ring" width="120" height="120" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="54" fill="none" stroke="#21262d" stroke-width="10"/>
-        <circle cx="60" cy="60" r="54" fill="none" stroke="${scoreCol}" stroke-width="10"
-          stroke-dasharray="${circumference.toFixed(2)}"
-          stroke-dashoffset="${offset.toFixed(2)}"
-          stroke-linecap="round"/>
-        <text x="60" y="58" text-anchor="middle" dominant-baseline="middle"
-          class="score-text" font-family="-apple-system,sans-serif" font-weight="700" font-size="22">${report.score}</text>
-        <text x="60" y="76" text-anchor="middle" dominant-baseline="middle"
-          class="score-sub" font-family="-apple-system,sans-serif" font-size="10" fill="#8b949e">/ 100</text>
-      </svg>
+<div class="hero">
+  <div class="hero-left">
+    <div class="status-badge" style="color:${sm.color}">${esc(sm.label)}</div>
+    <div class="score-wrap">
+      <span class="score-num" style="color:${sc}">${report.score}</span>
+      <span class="score-denom">&thinsp;/&thinsp;100</span>
     </div>
-
-    <div class="status-info">
-      <div class="status-badge">${statusLabel(report.status)}</div>
-      <div class="status-desc">
-        ${report.status === 'OK' ? 'All scanned MCP configs look healthy.' : ''}
-        ${report.status === 'NEEDS_REVIEW' ? 'Some configuration issues may cause problems. Review the findings below.' : ''}
-        ${report.status === 'BROKEN' ? 'Critical issues detected. MCP servers are likely not starting. Fix HIGH severity findings first.' : ''}
-        ${report.status === 'RISKY' ? 'Security-sensitive configuration detected. Review permissions and token handling.' : ''}
-      </div>
-      <div style="margin-top:12px;display:flex;gap:16px;font-size:12px;color:var(--text-muted)">
-        <span>${report.configs.length} config${report.configs.length !== 1 ? 's' : ''} scanned</span>
-        <span>${report.servers.length} server${report.servers.length !== 1 ? 's' : ''} found</span>
-        <span>${report.allFindings.length} finding${report.allFindings.length !== 1 ? 's' : ''}</span>
-      </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-fill" style="width:${report.score}%;background:${sc}"></div>
     </div>
-
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#f85149">${highFindings.length}</div>
-        <div class="stat-lbl">High</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#d29922">${medFindings.length}</div>
-        <div class="stat-lbl">Medium</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#388bfd">${lowFindings.length}</div>
-        <div class="stat-lbl">Low</div>
-      </div>
-    </div>
+    <div class="status-desc">${esc(sm.desc)}</div>
   </div>
-
-  <div class="section">
-    <div class="section-title">Scanned Configs</div>
-    <table>
-      <thead><tr><th>Client</th><th>Path</th><th>Status</th></tr></thead>
-      <tbody>${configRows}</tbody>
-    </table>
+  <div class="hero-right">
+    <div class="fixes-label">What to fix first</div>
+    ${topFixesHtml}
   </div>
+</div>
 
-  ${report.servers.length > 0 ? `
-  <div class="section">
-    <div class="section-title">Detected Servers (${report.servers.length})</div>
-    ${serverCardsHtml}
-  </div>` : ''}
-
-  <div class="section">
-    <div class="section-title">Findings</div>
-    ${findingsHtml}
+<div class="stats">
+  <div class="stat">
+    <span class="stat-n">${report.configs.length}</span>
+    <span class="stat-lbl">config${report.configs.length !== 1 ? 's' : ''}</span>
   </div>
-
-  <div class="section">
-    <div class="section-title">Safe Config Template</div>
-    <div class="finding-card" style="border-left:3px solid #3fb950">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Use absolute paths to avoid GUI app PATH issues:</div>
-      <pre class="fix-code">${esc(JSON.stringify({
-        mcpServers: {
-          'your-server': {
-            command: '/opt/homebrew/bin/npx',
-            args: ['-y', 'your-mcp-package'],
-            env: { API_KEY: 'your-actual-api-key' },
-          },
-        },
-      }, null, 2))}</pre>
-    </div>
+  <div class="stat-sep"></div>
+  <div class="stat">
+    <span class="stat-n">${report.servers.length}</span>
+    <span class="stat-lbl">server${report.servers.length !== 1 ? 's' : ''}</span>
   </div>
+  <div class="stat-sep"></div>
+  <div class="stat">
+    <span class="stat-n" style="color:#f85149">${highs.length}</span>
+    <span class="stat-lbl">high</span>
+  </div>
+  <div class="stat-sep"></div>
+  <div class="stat">
+    <span class="stat-n" style="color:#d29922">${meds.length}</span>
+    <span class="stat-lbl">medium</span>
+  </div>
+  <div class="stat-sep"></div>
+  <div class="stat">
+    <span class="stat-n" style="color:#388bfd">${lows.length}</span>
+    <span class="stat-lbl">low</span>
+  </div>
+</div>
 
-</main>
+<section class="section">
+  <div class="sec-title">Findings</div>
+  ${findingsHtml}
+</section>
+
+<section class="section">
+  <div class="sec-title">Detected Servers</div>
+  ${serversHtml}
+</section>
+
+<section class="section">
+  <div class="sec-title">Scanned Configs</div>
+  <table class="cft">
+    <thead><tr><th>Client</th><th>Path</th><th>Status</th></tr></thead>
+    <tbody>${configRows}</tbody>
+  </table>
+</section>
 
 <footer class="footer">
-  <span>MCP Doctor v0.1.0 — <a href="https://github.com/stephenywilson/MCP-Doctor">github.com/stephenywilson/MCP-Doctor</a></span>
-  <span>⚠️ Secrets are masked. No data is sent to any network.</span>
+  <span>MCP Doctor v0.1.0 &mdash; <a href="https://github.com/stephenywilson/MCP-Doctor">github.com/stephenywilson/MCP-Doctor</a></span>
+  <span>Secrets masked &middot; No network access</span>
 </footer>
 
+</div>
 </body>
 </html>`;
 }

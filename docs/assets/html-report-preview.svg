@@ -1,130 +1,184 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 500" width="780" height="500">
-  <defs>
-    <style>
-      .bg       { fill: #0d1117; }
-      .surface  { fill: #161b22; }
-      .surface2 { fill: #1c2128; }
-      .border   { stroke: #30363d; stroke-width: 1; fill: none; }
-      .text     { font-family: -apple-system, 'Segoe UI', sans-serif; fill: #c9d1d9; }
-      .muted    { fill: #8b949e; }
-      .accent   { fill: #58a6ff; }
-      .mono     { font-family: 'SF Mono', 'Cascadia Code', monospace; }
-      .green    { fill: #3fb950; }
-      .red      { fill: #f85149; }
-      .yellow   { fill: #d29922; }
-      .blue     { fill: #388bfd; }
-      .white    { fill: #e6edf3; }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" width="860" height="560">
+<defs>
+  <style>
+    .bg      { fill: #0d1117; }
+    .s1      { fill: #161b22; }
+    .s2      { fill: #1c2128; }
+    .s3      { fill: #21262d; }
+    .b1      { stroke: #30363d; stroke-width: 1; fill: none; }
+    .b2      { stroke: #21262d; stroke-width: 1; fill: none; }
+    .t1      { fill: #e6edf3; }
+    .t2      { fill: #c9d1d9; }
+    .t3      { fill: #8b949e; }
+    .t4      { fill: #484f58; }
+    .red     { fill: #f85149; }
+    .amber   { fill: #d29922; }
+    .blue    { fill: #388bfd; }
+    .green   { fill: #3fb950; }
+    .cyan    { fill: #79c0ff; }
+    .mono    { font-family: 'SF Mono', 'Cascadia Code', monospace; }
+    .sans    { font-family: -apple-system, 'Segoe UI', sans-serif; }
+    .bold    { font-weight: 700; }
+    .med     { font-weight: 500; }
+    .upper   { text-transform: uppercase; }
+  </style>
+</defs>
 
-  <!-- Browser chrome -->
-  <rect width="780" height="500" rx="10" class="surface"/>
-  <rect width="780" height="38" rx="10" class="surface2"/>
-  <rect y="28" width="780" height="10" class="surface2"/>
-  <line x1="0" y1="38" x2="780" y2="38" stroke="#30363d" stroke-width="1"/>
+<!-- Page background -->
+<rect width="860" height="560" class="bg"/>
 
-  <!-- Traffic lights -->
-  <circle cx="20" cy="19" r="5.5" fill="#f85149"/>
-  <circle cx="38" cy="19" r="5.5" fill="#d29922"/>
-  <circle cx="56" cy="19" r="5.5" fill="#3fb950"/>
+<!-- ── HEADER ── -->
+<text x="24" y="42" class="sans bold t1" font-size="17">MCP Doctor</text>
+<text x="24" y="59" class="sans t3" font-size="12">Diagnose and fix broken MCP servers.</text>
 
-  <!-- URL bar -->
-  <rect x="120" y="9" width="400" height="20" rx="4" fill="#21262d"/>
-  <text x="320" y="23" text-anchor="middle" class="text muted mono" font-size="11">mcp-doctor-report.html</text>
+<rect x="790" y="26" width="42" height="16" rx="8" class="s3"/>
+<rect x="790" y="26" width="42" height="16" rx="8" class="b1"/>
+<text x="811" y="38" text-anchor="middle" class="mono t3" font-size="10">v0.1.0</text>
+<text x="790" y="58" text-anchor="end" class="mono t3" font-size="10">2026-05-04 12:00 UTC</text>
 
-  <!-- Page background -->
-  <rect y="38" width="780" height="462" class="bg"/>
+<line x1="24" y1="70" x2="836" y2="70" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Header bar -->
-  <rect y="38" width="780" height="50" class="surface"/>
-  <line x1="0" y1="88" x2="780" y2="88" stroke="#30363d" stroke-width="1"/>
-  <text x="24" y="70" class="text white" font-size="20" font-weight="700">MCP <tspan class="accent">Doctor</tspan></text>
-  <rect x="130" y="58" width="42" height="18" rx="9" fill="#21262d"/>
-  <text x="151" y="71" text-anchor="middle" class="text muted" font-size="10">v0.1.0</text>
-  <text x="720" y="70" class="text muted" font-size="11">2026-05-04 12:00 UTC</text>
+<!-- ── HERO ── -->
+<rect x="24" y="82" width="812" height="158" rx="7" class="s1"/>
+<rect x="24" y="82" width="812" height="158" rx="7" class="b1"/>
 
-  <!-- Score card -->
-  <rect x="16" y="100" width="748" height="118" rx="6" class="surface"/>
-  <rect x="16" y="100" width="748" height="118" rx="6" class="border"/>
+<!-- Hero left panel -->
+<rect x="24" y="82" width="400" height="158" rx="0" class="s1"/>
+<rect x="24" y="82" width="400" height="158" rx="7" class="s1"/>
+<!-- clip right corners of left panel -->
+<rect x="418" y="82" width="10" height="158" class="s1"/>
 
-  <!-- Score ring -->
-  <circle cx="75" cy="159" r="40" fill="none" stroke="#21262d" stroke-width="8"/>
-  <circle cx="75" cy="159" r="40" fill="none" stroke="#f85149" stroke-width="8"
-    stroke-dasharray="251.2" stroke-dashoffset="240" stroke-linecap="round"
-    transform="rotate(-90 75 159)"/>
-  <text x="75" y="155" text-anchor="middle" class="text white" font-size="18" font-weight="700">4</text>
-  <text x="75" y="169" text-anchor="middle" class="text muted" font-size="9">/ 100</text>
-  <text x="75" y="207" text-anchor="middle" class="text muted" font-size="10">Health Score</text>
+<!-- Status badge -->
+<text x="48" y="115" class="sans bold red" font-size="24" letter-spacing="-0.5">BROKEN</text>
 
-  <!-- Status -->
-  <text x="140" y="145" class="text red" font-size="22" font-weight="700">BROKEN</text>
-  <text x="140" y="163" class="text muted" font-size="12">Critical issues detected. Fix HIGH severity findings first.</text>
-  <text x="140" y="180" class="text muted" font-size="11">1 config scanned  ·  3 servers found  ·  6 findings</text>
+<!-- Score -->
+<text x="48" y="163" class="sans bold red" font-size="46" letter-spacing="-3">4</text>
+<text x="86" y="163" class="sans t3" font-size="18">/100</text>
 
-  <!-- Stat cards -->
-  <rect x="552" y="112" width="64" height="56" rx="5" class="surface2"/>
-  <rect x="552" y="112" width="64" height="56" rx="5" class="border"/>
-  <text x="584" y="140" text-anchor="middle" class="text red" font-size="24" font-weight="700">4</text>
-  <text x="584" y="156" text-anchor="middle" class="text muted" font-size="9">HIGH</text>
+<!-- Score bar -->
+<rect x="48" y="172" width="340" height="3" rx="1" fill="#30363d"/>
+<rect x="48" y="172" width="14" height="3" rx="1" fill="#f85149"/>
 
-  <rect x="624" y="112" width="64" height="56" rx="5" class="surface2"/>
-  <rect x="624" y="112" width="64" height="56" rx="5" class="border"/>
-  <text x="656" y="140" text-anchor="middle" class="text yellow" font-size="24" font-weight="700">2</text>
-  <text x="656" y="156" text-anchor="middle" class="text muted" font-size="9">MEDIUM</text>
+<!-- Status desc -->
+<text x="48" y="198" class="sans t3" font-size="12">Critical issues detected. Fix HIGH findings first.</text>
 
-  <rect x="696" y="112" width="64" height="56" rx="5" class="surface2"/>
-  <rect x="696" y="112" width="64" height="56" rx="5" class="border"/>
-  <text x="728" y="140" text-anchor="middle" class="text blue" font-size="24" font-weight="700">0</text>
-  <text x="728" y="156" text-anchor="middle" class="text muted" font-size="9">LOW</text>
+<!-- Divider between hero panels -->
+<line x1="425" y1="86" x2="425" y2="235" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Section: Findings -->
-  <text x="16" y="244" class="text white" font-size="14" font-weight="600">Findings</text>
-  <line x1="16" y1="250" x2="764" y2="250" stroke="#30363d" stroke-width="1"/>
+<!-- Hero right panel -->
+<rect x="426" y="82" width="410" height="158" rx="0" class="s2"/>
+<rect x="820" y="82" width="16" height="158" class="s2"/>
+<!-- round right corners -->
 
-  <!-- HIGH group label -->
-  <text x="16" y="272" class="text red" font-size="12" font-weight="600">🔴 HIGH — 4 findings</text>
+<text x="450" y="106" class="sans t3 upper" font-size="10" letter-spacing="0.8" font-weight="600">What to fix first</text>
 
-  <!-- Finding card 1 -->
-  <rect x="16" y="280" width="748" height="46" rx="5" class="surface"/>
-  <rect x="16" y="280" width="748" height="46" rx="5" class="border"/>
-  <rect x="16" y="280" width="3" height="46" rx="1" fill="#f85149"/>
-  <rect x="28" y="290" width="32" height="16" rx="8" fill="#3a1111"/>
-  <text x="44" y="302" text-anchor="middle" class="text red" font-size="9" font-weight="700">HIGH</text>
-  <text x="70" y="298" class="text white" font-size="12" font-weight="500">Server missing required "command" field</text>
-  <rect x="570" y="290" width="80" height="15" rx="7" fill="#21262d"/>
-  <text x="610" y="301" text-anchor="middle" class="text muted" font-size="9">CFG-004</text>
-  <rect x="658" y="290" width="96" height="15" rx="7" fill="#21262d"/>
-  <text x="706" y="301" text-anchor="middle" class="text muted" font-size="9">TOOL_VISIBILITY</text>
-  <text x="28" y="318" class="text muted" font-size="11">Evidence: Server "broken-no-command": command = undefined</text>
+<!-- Fix item 1 -->
+<rect x="450" y="115" width="18" height="18" rx="9" class="s3"/>
+<rect x="450" y="115" width="18" height="18" rx="9" class="b1"/>
+<text x="459" y="128" text-anchor="middle" class="sans t4" font-size="10" font-weight="600">1</text>
+<text x="476" y="126" class="sans t1 med" font-size="12">Server missing &quot;command&quot; field</text>
+<rect x="720" y="116" width="110" height="14" rx="6" class="s3"/>
+<rect x="720" y="116" width="110" height="14" rx="6" class="b1"/>
+<text x="775" y="127" text-anchor="middle" class="mono t4" font-size="9">broken-no-command</text>
+<text x="476" y="140" class="sans t3" font-size="11">Add a &quot;command&quot; field to server config</text>
+<line x1="450" y1="148" x2="830" y2="148" stroke="#21262d" stroke-width="1"/>
 
-  <!-- Finding card 2 -->
-  <rect x="16" y="332" width="748" height="46" rx="5" class="surface"/>
-  <rect x="16" y="332" width="748" height="46" rx="5" class="border"/>
-  <rect x="16" y="332" width="3" height="46" rx="1" fill="#f85149"/>
-  <rect x="28" y="342" width="32" height="16" rx="8" fill="#3a1111"/>
-  <text x="44" y="354" text-anchor="middle" class="text red" font-size="9" font-weight="700">HIGH</text>
-  <text x="70" y="350" class="text white" font-size="12" font-weight="500">Placeholder value detected: GITHUB_TOKEN</text>
-  <rect x="570" y="342" width="56" height="15" rx="7" fill="#21262d"/>
-  <text x="598" y="353" text-anchor="middle" class="text muted" font-size="9">github</text>
-  <text x="28" y="370" class="text muted" font-size="11">Evidence: GITHUB_TOKEN = "YOUR_****"   Fix: Replace the placeholder with your real GITHUB_TOKEN value.</text>
+<!-- Fix item 2 -->
+<rect x="450" y="155" width="18" height="18" rx="9" class="s3"/>
+<rect x="450" y="155" width="18" height="18" rx="9" class="b1"/>
+<text x="459" y="168" text-anchor="middle" class="sans t4" font-size="10" font-weight="600">2</text>
+<text x="476" y="166" class="sans t1 med" font-size="12">Placeholder value: GITHUB_TOKEN</text>
+<rect x="748" y="156" width="82" height="14" rx="6" class="s3"/>
+<rect x="748" y="156" width="82" height="14" rx="6" class="b1"/>
+<text x="789" y="167" text-anchor="middle" class="mono t4" font-size="9">github</text>
+<text x="476" y="180" class="sans t3" font-size="11">Replace placeholder with your real token value</text>
+<line x1="450" y1="188" x2="830" y2="188" stroke="#21262d" stroke-width="1"/>
 
-  <!-- MEDIUM group label -->
-  <text x="16" y="400" class="text yellow" font-size="12" font-weight="600">🟡 MEDIUM — 2 findings</text>
+<!-- Fix item 3 -->
+<rect x="450" y="195" width="18" height="18" rx="9" class="s3"/>
+<rect x="450" y="195" width="18" height="18" rx="9" class="b1"/>
+<text x="459" y="208" text-anchor="middle" class="sans t4" font-size="10" font-weight="600">3</text>
+<text x="476" y="206" class="sans t1 med" font-size="12">Filesystem server has overly broad access</text>
+<text x="476" y="220" class="sans t3" font-size="11">Scope to project directory, not /Users or /</text>
 
-  <!-- Finding card 3 -->
-  <rect x="16" y="408" width="748" height="38" rx="5" class="surface"/>
-  <rect x="16" y="408" width="748" height="38" rx="5" class="border"/>
-  <rect x="16" y="408" width="3" height="38" rx="1" fill="#d29922"/>
-  <rect x="28" y="417" width="44" height="16" rx="8" fill="#2d2107"/>
-  <text x="50" y="429" text-anchor="middle" class="text yellow" font-size="9" font-weight="700">MEDIUM</text>
-  <text x="82" y="430" class="text white" font-size="12" font-weight="500">GUI app PATH may not include your shell PATH</text>
-  <rect x="570" y="418" width="72" height="15" rx="7" fill="#21262d"/>
-  <text x="606" y="429" text-anchor="middle" class="text muted" font-size="9">filesystem</text>
-  <text x="650" y="418" width="96" height="15" rx="7" fill="#21262d"/>
-  <text x="720" y="429" text-anchor="middle" class="text muted" font-size="9">GUI_PATH</text>
+<!-- ── STATS STRIP ── -->
+<rect x="24" y="252" width="812" height="58" rx="7" class="s1"/>
+<rect x="24" y="252" width="812" height="58" rx="7" class="b1"/>
 
-  <!-- Footer -->
-  <line x1="0" y1="468" x2="780" y2="468" stroke="#30363d" stroke-width="1"/>
-  <text x="16" y="486" class="text muted" font-size="11">MCP Doctor v0.1.0 — github.com/stephenywilson/MCP-Doctor</text>
-  <text x="620" y="486" class="text muted" font-size="11">⚠️ Secrets masked. No network.</text>
+<!-- Stat: configs -->
+<text x="129" y="277" text-anchor="middle" class="sans bold t1" font-size="22">1</text>
+<text x="129" y="293" text-anchor="middle" class="sans t3 upper" font-size="10" letter-spacing="0.5">configs</text>
+<line x1="236" y1="266" x2="236" y2="296" stroke="#30363d" stroke-width="1"/>
+
+<!-- Stat: servers -->
+<text x="290" y="277" text-anchor="middle" class="sans bold t1" font-size="22">3</text>
+<text x="290" y="293" text-anchor="middle" class="sans t3 upper" font-size="10" letter-spacing="0.5">servers</text>
+<line x1="348" y1="266" x2="348" y2="296" stroke="#30363d" stroke-width="1"/>
+
+<!-- Stat: HIGH -->
+<text x="428" y="277" text-anchor="middle" class="sans bold red" font-size="22">4</text>
+<text x="428" y="293" text-anchor="middle" class="sans t3 upper" font-size="10" letter-spacing="0.5">high</text>
+<line x1="508" y1="266" x2="508" y2="296" stroke="#30363d" stroke-width="1"/>
+
+<!-- Stat: MEDIUM -->
+<text x="592" y="277" text-anchor="middle" class="sans bold amber" font-size="22">2</text>
+<text x="592" y="293" text-anchor="middle" class="sans t3 upper" font-size="10" letter-spacing="0.5">medium</text>
+<line x1="676" y1="266" x2="676" y2="296" stroke="#30363d" stroke-width="1"/>
+
+<!-- Stat: LOW -->
+<text x="752" y="277" text-anchor="middle" class="sans bold blue" font-size="22">0</text>
+<text x="752" y="293" text-anchor="middle" class="sans t3 upper" font-size="10" letter-spacing="0.5">low</text>
+
+<!-- ── FINDINGS SECTION ── -->
+<text x="24" y="338" class="sans bold t1" font-size="13">Findings</text>
+<line x1="24" y1="346" x2="836" y2="346" stroke="#30363d" stroke-width="1"/>
+
+<text x="24" y="365" class="sans red upper" font-size="11" font-weight="600" letter-spacing="0.5">HIGH — 4 findings</text>
+
+<!-- Finding card 1 -->
+<rect x="24" y="372" width="812" height="60" rx="0" class="s1"/>
+<rect x="24" y="372" width="812" height="60" rx="0" style="stroke:#30363d;stroke-width:1;fill:none"/>
+<!-- round right side -->
+<rect x="28" y="372" width="808" height="60" rx="6" class="s1"/>
+<rect x="28" y="372" width="808" height="60" rx="6" style="stroke:#30363d;stroke-width:1;fill:none"/>
+<!-- left accent border -->
+<rect x="24" y="372" width="4" height="60" fill="#f85149"/>
+
+<text x="38" y="391" class="sans red upper" font-size="9" font-weight="700" letter-spacing="0.5">HIGH</text>
+<text x="80" y="391" class="sans t1 med" font-size="13">Server missing required &quot;command&quot; field</text>
+
+<rect x="38" y="398" width="792" height="20" rx="3" class="s3"/>
+<text x="46" y="413" class="mono t2" font-size="11">Server "broken-no-command": command = undefined</text>
+
+<rect x="38" y="396" width="55" height="14" rx="7" class="s3"/>
+<rect x="38" y="396" width="55" height="14" rx="7" class="b2"/>
+<text x="65" y="407" text-anchor="middle" class="mono t4" font-size="9">CFG-004</text>
+
+<!-- Finding card 2 -->
+<rect x="24" y="438" width="812" height="60" rx="0" class="s1"/>
+<rect x="28" y="438" width="808" height="60" rx="6" class="s1"/>
+<rect x="28" y="438" width="808" height="60" rx="6" style="stroke:#30363d;stroke-width:1;fill:none"/>
+<rect x="24" y="438" width="4" height="60" fill="#f85149"/>
+
+<text x="38" y="457" class="sans red upper" font-size="9" font-weight="700" letter-spacing="0.5">HIGH</text>
+<text x="80" y="457" class="sans t1 med" font-size="13">Placeholder value detected: GITHUB_TOKEN</text>
+
+<rect x="38" y="462" width="792" height="20" rx="3" class="s3"/>
+<text x="46" y="477" class="mono t2" font-size="11">GITHUB_TOKEN = "YOUR_****"</text>
+
+<!-- MEDIUM finding -->
+<text x="24" y="516" class="sans amber upper" font-size="11" font-weight="600" letter-spacing="0.5">MEDIUM — 2 findings</text>
+
+<rect x="24" y="523" width="812" height="24" rx="0" class="s1"/>
+<rect x="28" y="523" width="808" height="24" rx="5" class="s1"/>
+<rect x="28" y="523" width="808" height="24" style="stroke:#30363d;stroke-width:1;fill:none;rx:5"/>
+<rect x="24" y="523" width="4" height="24" fill="#d29922"/>
+
+<text x="38" y="536" class="sans amber upper" font-size="9" font-weight="700" letter-spacing="0.5">MEDIUM</text>
+<text x="90" y="536" class="sans t1 med" font-size="13">GUI app PATH may not include your shell PATH</text>
+
+<!-- ── FOOTER ── -->
+<line x1="24" y1="553" x2="836" y2="553" stroke="#30363d" stroke-width="1"/>
+<text x="24" y="547" class="sans t3" font-size="11">MCP Doctor v0.1.0 — github.com/stephenywilson/MCP-Doctor</text>
+<text x="836" y="547" text-anchor="end" class="sans t3" font-size="11">Secrets masked · No network access</text>
 </svg>

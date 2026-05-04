@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/stephen"],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_YOUR_TOKEN_HERE"
+      }
+    },
+    "local-helper": {
+      "command": "./scripts/helper.sh",
+      "args": ["--mode", "full"],
+      "env": {
+        "API_SECRET": "do_not_share_this"
+      }
+    }
+  }
+}

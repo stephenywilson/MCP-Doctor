@@ -1,21 +1,47 @@
 # MCP Doctor
 
-Diagnose and fix broken MCP servers.
+Diagnose, inspect, and safely configure MCP servers.
 
-MCP Doctor helps developers debug MCP servers that do not work in Claude Desktop, Cursor, VS Code, Cline, and other AI tools.
+MCP Doctor helps developers debug, risk-preview, and safely configure MCP servers before installing them in Claude Desktop, Cursor, VS Code, Cline, Claude Code, Windsurf, and other AI tools.
+
+**Before you paste an MCP config into Claude Desktop or Cursor — run MCP Doctor.**
 
 It checks the real failure points:
+
 - wrong config file location
 - invalid JSON
 - missing `node`, `npx`, `uv`, `uvx`, `python`, or `docker`
 - GUI apps not inheriting your shell PATH (`spawn npx ENOENT`)
 - missing env vars and API tokens
 - MCP servers showing no tools, prompts, or resources
-- tools not appearing after install
-- unsafe filesystem access
-- risky MCP permissions
+- unsafe filesystem access (home directory, root, credentials folders)
+- high-privilege tokens and secrets in config
+- risky server permissions before you install them
 
-Run one command before wasting another hour on MCP config.
+## v0.2.0 — Safe Install Preview
+
+Before trusting any MCP config in an AI tool, inspect it first:
+
+```bash
+# Preview risk levels for all servers in a config
+mcp-doctor preview ./mcp-config.json
+
+# Detailed per-server inspection with report
+mcp-doctor inspect ./mcp-config.json --report
+
+# Generate a safer config with redacted secrets and scoped paths
+mcp-doctor safe-config ./mcp-config.json --client claude
+```
+
+**MCP Doctor never:**
+- executes unknown MCP server packages or scripts
+- modifies your real Claude Desktop, Cursor, or VS Code config
+- prints secret or token values
+- sends data to external services
+
+All analysis is local and offline.
+
+---
 
 ```
 ❯ mcp-doctor scan
@@ -129,6 +155,44 @@ mcp-doctor scan --config examples/broken-claude-config.json --out /tmp/test --js
 
 ---
 
+## Safe Install Preview Example
+
+```
+mcp-doctor preview examples/safe-install-preview/unsafe-mcp-config.json
+
+  MCP Doctor v0.2.0  Safe Install Preview
+
+  Config:  examples/safe-install-preview/unsafe-mcp-config.json
+  Servers: 3
+
+  1. filesystem
+     Risk: HIGH
+       ─ Grants broad filesystem access: "/Users/stephen"
+       ─ Filesystem server detected
+       ─ No project-level boundary detected
+     ⚠  Safer path: ~/projects/YOUR_PROJECT
+
+  2. github
+     Risk: HIGH
+       ─ Requires high-privilege credential env var: GITHUB_TOKEN
+     Env vars: GITHUB_TOKEN (values not shown)
+
+  3. local-helper
+     Risk: HIGH
+       ─ Runs local script with relative path: "./scripts/helper.sh"
+       ─ Requires high-privilege credential env var: API_SECRET
+
+  Overall: HIGH
+
+  Recommendations:
+    • Do not grant access to your home directory.
+    • Prefer a project-specific folder: ~/projects/YOUR_PROJECT
+    • Use least-privilege tokens.
+    • Run: mcp-doctor safe-config <config-path> --client claude
+```
+
+---
+
 ## What It Checks
 
 | Category | Examples |
@@ -231,7 +295,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 
 ## Roadmap
 
-### v0.1.3 (current)
+### v0.2.0 (current)
 - [x] Auto-detect common MCP config locations
 - [x] Parse and validate JSON configs
 - [x] Diagnose 20+ failure patterns
@@ -244,7 +308,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 - [x] JSON report (--json flag)
 - [x] GitHub Actions CI
 
-### v0.1.4 ideas
+### v0.2.1 ideas
 - [ ] VS Code / Cline config detection
 - [ ] Windsurf config detection
 - [ ] Detect common MCP package names and verify they exist on npm/PyPI

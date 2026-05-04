@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] — 2026-05-05
+
+### Added
+
+- **`mcp-doctor preview [configPath]`** — Risk preview before installing any MCP config. Prints per-server risk levels (HIGH/MEDIUM/LOW), reasons, and recommendations. Read-only, no secrets printed.
+- **`mcp-doctor inspect [configPath]`** — Detailed server-by-server inspection with risk analysis, env var names (values redacted), detected filesystem paths, and safer suggestions. `--report` flag writes `MCP_DOCTOR_SAFE_INSTALL_REPORT.md`.
+- **`mcp-doctor safe-config [configPath]`** — Generates a safer MCP config: replaces broad filesystem paths with `~/projects/YOUR_PROJECT`, replaces all env values with `${VAR_NAME}` shell placeholders. Supports `--client claude|cursor|vscode|generic`, `--out <dir>`, `--no-write`.
+- **Risk analyzer** (`src/safe-install/risk-analyzer.ts`) — Static analysis engine detecting HIGH/MEDIUM/LOW risk patterns: broad filesystem paths, shell commands, high-privilege credential env vars, network/API integrations, relative path execution, and remote package execution.
+- **Safe config generator** (`src/safe-install/safe-config-generator.ts`) — Produces valid JSON with redacted env values and scoped path suggestions.
+- **Report writer** (`src/safe-install/report-writer.ts`) — Generates Markdown safe install reports.
+- New example: `examples/safe-install-preview/` with intentionally risky config and usage README.
+- Updated smoke test to cover all three new commands (11 checks total).
+
+### Changed
+
+- Package description updated: "Diagnose, inspect, and safely configure MCP servers"
+- README repositioned with v0.2.0 Safe Install Preview section
+- Version bumped to 0.2.0 across CLI, reporters, package.json
+
+### Security
+
+- `preview`, `inspect`, and `safe-config` never execute MCP servers
+- No secret values are printed at any point
+- No real client configs are modified
+- All analysis is local and offline
+
+---
+
 ## [0.1.3] — 2026-05-05
 
 ### Fixed

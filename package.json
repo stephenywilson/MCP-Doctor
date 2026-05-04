@@ -44,7 +44,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stephenywilson/MCP-Doctor.git"
+    "url": "git+https://github.com/stephenywilson/MCP-Doctor.git"
   },
   "bugs": {
     "url": "https://github.com/stephenywilson/MCP-Doctor/issues"

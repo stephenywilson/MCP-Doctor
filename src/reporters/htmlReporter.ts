@@ -604,7 +604,7 @@ code{
     <div class="hdr-sub">Diagnose and fix broken MCP servers.</div>
   </div>
   <div class="hdr-meta">
-    <span class="hdr-ver">v0.1.0</span>
+    <span class="hdr-ver">v0.1.1</span>
     <span class="hdr-ts">${esc(report.timestamp)}</span>
   </div>
 </header>

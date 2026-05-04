@@ -9,7 +9,7 @@ import { detectConfigs } from './scanner/configDetector.js';
 import { statusLabel } from './scanner/riskScorer.js';
 import { ScanOptions } from './types.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 
 function printLine(msg: string): void {
   process.stdout.write(msg + '\n');

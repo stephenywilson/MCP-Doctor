@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1] — 2026-05-04
+
+### Fixed
+
+- Replaced fragile HTML report preview SVG (had undefined XML entity `&thinsp;`) with a PNG screenshot generated from the actual report
+- Fixed broken image in GitHub and npm README
+- Updated version string across CLI, HTML reporter, and Markdown reporter
+
+---
+
 ## [0.1.0] — 2026-05-04
 
 ### Added

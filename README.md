@@ -53,7 +53,7 @@ Run one command before wasting another hour on MCP config.
 
 ![Terminal Demo](docs/assets/terminal-demo.svg)
 
-![HTML Report Preview](docs/assets/html-report-preview.svg)
+![HTML Report Preview](docs/assets/html-report-preview.png)
 
 ---
 
@@ -231,7 +231,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 
 ## Roadmap
 
-### v0.1.0 (current)
+### v0.1.1 (current)
 - [x] Auto-detect common MCP config locations
 - [x] Parse and validate JSON configs
 - [x] Diagnose 20+ failure patterns
@@ -244,7 +244,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 - [x] JSON report (--json flag)
 - [x] GitHub Actions CI
 
-### v0.1.1 ideas
+### v0.1.2 ideas
 - [ ] VS Code / Cline config detection
 - [ ] Windsurf config detection
 - [ ] Detect common MCP package names and verify they exist on npm/PyPI

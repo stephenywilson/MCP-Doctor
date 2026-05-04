@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420">
+  <defs>
+    <style>
+      .bg { fill: #0d1117; }
+      .titlebar { fill: #161b22; }
+      .dot-red { fill: #f85149; }
+      .dot-yellow { fill: #d29922; }
+      .dot-green { fill: #3fb950; }
+      .term-text { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; }
+      .prompt { fill: #3fb950; }
+      .cmd { fill: #e6edf3; }
+      .muted { fill: #8b949e; }
+      .cyan { fill: #39c5cf; }
+      .red { fill: #f85149; }
+      .yellow { fill: #d29922; }
+      .green { fill: #3fb950; }
+      .blue { fill: #388bfd; }
+      .separator { fill: #30363d; }
+    </style>
+  </defs>
+
+  <!-- Window -->
+  <rect width="720" height="420" rx="10" class="bg"/>
+  <rect width="720" height="36" rx="10" class="titlebar"/>
+  <rect y="26" width="720" height="10" class="titlebar"/>
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="6" class="dot-red"/>
+  <circle cx="40" cy="18" r="6" class="dot-yellow"/>
+  <circle cx="60" cy="18" r="6" class="dot-green"/>
+
+  <!-- Title -->
+  <text x="360" y="23" text-anchor="middle" class="term-text muted" font-size="12">mcp-doctor — zsh</text>
+
+  <!-- Divider -->
+  <line x1="0" y1="36" x2="720" y2="36" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Line 1: prompt + command -->
+  <text x="20" y="68" class="term-text prompt">❯</text>
+  <text x="36" y="68" class="term-text cmd">mcp-doctor scan --config examples/broken-claude-config.json --json</text>
+
+  <!-- Line 2: blank -->
+  <!-- Line 3: header -->
+  <text x="20" y="94" class="term-text cyan" font-weight="bold">  MCP Doctor</text>
+  <text x="115" y="94" class="term-text muted">v0.1.0</text>
+  <text x="20" y="110" class="term-text muted">  Diagnose and fix broken MCP server configs</text>
+
+  <!-- Line: scanning -->
+  <text x="20" y="132" class="term-text muted">  Scanning: examples/broken-claude-config.json</text>
+  <text x="20" y="148" class="term-text muted">  Running diagnostics...</text>
+
+  <!-- Results section -->
+  <text x="20" y="170" class="term-text separator">  ── Results ──</text>
+  <text x="20" y="192" class="term-text cmd">  Score:   </text><text x="88" y="192" class="term-text cmd" font-weight="bold">24/100</text>
+  <text x="20" y="208" class="term-text cmd">  Status:  </text><text x="88" y="208" class="term-text red" font-weight="bold">❌ BROKEN</text>
+  <text x="20" y="224" class="term-text cmd">  Servers: 3</text>
+  <text x="20" y="240" class="term-text cmd">  Findings: 6 total</text>
+
+  <!-- Findings -->
+  <text x="20" y="262" class="term-text red">  HIGH  </text>
+  <text x="80" y="262" class="term-text cmd">Server missing required "command" field</text>
+  <text x="80" y="276" class="term-text muted">         ↳ Add a "command" field to server "broken-no-command"</text>
+
+  <text x="20" y="294" class="term-text red">  HIGH  </text>
+  <text x="80" y="294" class="term-text cmd">Placeholder value detected: GITHUB_TOKEN</text>
+  <text x="80" y="308" class="term-text muted">         ↳ Replace the placeholder with your real GITHUB_TOKEN value</text>
+
+  <text x="20" y="326" class="term-text red">  HIGH  </text>
+  <text x="80" y="326" class="term-text cmd">Filesystem server has overly broad access</text>
+  <text x="80" y="340" class="term-text muted">         ↳ Scope filesystem access to your project directory</text>
+
+  <text x="20" y="358" class="term-text yellow">  MEDIUM</text>
+  <text x="80" y="358" class="term-text cmd">GUI app PATH may not include your shell PATH</text>
+
+  <!-- Reports -->
+  <text x="20" y="380" class="term-text separator">  ── Writing Reports ──</text>
+  <text x="20" y="400" class="term-text green">  ✓ </text>
+  <text x="40" y="400" class="term-text muted">MCP_DOCTOR_REPORT.md  •  mcp-doctor-report.html  •  mcp-doctor-report.json</text>
+</svg>

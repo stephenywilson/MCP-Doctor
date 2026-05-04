@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+*.log
+npm-debug.log*
+/tmp/
+/out/
+.mcp-doctor-audit/
+MCP_DOCTOR_REPORT.md
+mcp-doctor-report.html
+mcp-doctor-report.json
+*.tgz
+.env
+.env.local

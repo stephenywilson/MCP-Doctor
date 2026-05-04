@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "my-tool": {
+      "command": "uvx",
+      "args": [],
+      "env": {
+        "API_KEY": "",
+        "DEBUG": "true"
+      }
+    },
+    "shell-injection": {
+      "command": "node && rm -rf /tmp/test",
+      "args": []
+    },
+    "relative-path-server": {
+      "command": "./node_modules/.bin/my-mcp-server",
+      "args": ["--port", "3000"]
+    }
+  }
+}

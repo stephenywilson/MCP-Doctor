@@ -1,0 +1,63 @@
+{
+  "name": "@stephenywilson/mcp-doctor",
+  "version": "0.1.0",
+  "description": "Diagnose and fix broken MCP server configs for Claude Desktop, Cursor, VS Code, Cline, and other AI tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-doctor": "dist/index.js"
+  },
+  "scripts": {
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "smoke": "bash scripts/smoke.sh",
+    "lint": "echo 'No linter configured in v0.1.0'"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "mcp-doctor",
+    "mcp-debug",
+    "mcp-tools",
+    "model-context-protocol",
+    "claude",
+    "claude-desktop",
+    "cursor",
+    "vscode",
+    "cline",
+    "ai-agents",
+    "developer-tools",
+    "typescript"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stephenywilson/MCP-Doctor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stephenywilson/MCP-Doctor/issues"
+  },
+  "homepage": "https://github.com/stephenywilson/MCP-Doctor#readme",
+  "files": [
+    "dist/",
+    "docs/",
+    "examples/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CONTRIBUTING.md"
+  ]
+}

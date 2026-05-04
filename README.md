@@ -20,7 +20,7 @@ Run one command before wasting another hour on MCP config.
 ```
 ❯ mcp-doctor scan
 
-  MCP Doctor v0.1.0
+  MCP Doctor v0.1.2
   Diagnose and fix broken MCP server configs
 
   Found 1 config:
@@ -132,7 +132,7 @@ mcp-doctor scan --config examples/broken-claude-config.json --out /tmp/test --js
 ## What It Checks
 
 | Category | Examples |
-|----------|---------|
+|---|---|
 | Config file | Invalid JSON, missing `mcpServers`, file not found |
 | Commands | Shell operators in command, relative paths, missing `command` field |
 | Executables | `npx`, `uv`, `uvx`, `node`, `python`, `docker` not found on PATH |
@@ -151,7 +151,7 @@ Full check list → [docs/what-mcp-doctor-checks.md](docs/what-mcp-doctor-checks
 `mcp-doctor scan` writes two files by default:
 
 | File | Description |
-|------|-------------|
+|---|---|
 | `MCP_DOCTOR_REPORT.md` | Human-readable Markdown report with all findings and fixes |
 | `mcp-doctor-report.html` | Visual HTML report — dark theme, score card, server cards, grouped findings |
 
@@ -168,7 +168,7 @@ Reports are written to the current directory. Use `--out <dir>` to change the ou
 Auto-detected config locations:
 
 | Client | Config Path |
-|--------|------------|
+|---|---|
 | Claude Desktop (macOS) | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Claude Desktop (Windows) | `%APPDATA%\Claude\claude_desktop_config.json` |
 | Cursor (project) | `.cursor/mcp.json` |
@@ -218,7 +218,7 @@ MCP Doctor never modifies your config files. Suggestions are in the report only.
 The `examples/` folder contains intentionally broken configs for testing:
 
 | File | What's broken |
-|------|--------------|
+|---|---|
 | `broken-claude-config.json` | Missing command, placeholder token, broad filesystem access |
 | `broken-cursor-config.json` | Empty args, shell operators, relative path |
 | `filesystem-too-broad.json` | Root `/` and home dir access |
@@ -231,7 +231,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 
 ## Roadmap
 
-### v0.1.1 (current)
+### v0.1.2 (current)
 - [x] Auto-detect common MCP config locations
 - [x] Parse and validate JSON configs
 - [x] Diagnose 20+ failure patterns
@@ -244,7 +244,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 - [x] JSON report (--json flag)
 - [x] GitHub Actions CI
 
-### v0.1.2 ideas
+### v0.1.3 ideas
 - [ ] VS Code / Cline config detection
 - [ ] Windsurf config detection
 - [ ] Detect common MCP package names and verify they exist on npm/PyPI

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.2] — 2026-05-04
+
+### Changed
+
+- Reworked HTML report visual style to match MarketLayer/Catalayer product console (exact `ml-bg`, `ml-panel`, `ml-accent` token values; `rounded-sm` pills; verdict panel; two-column findings + fixes layout)
+- Regenerated README HTML report preview PNG from the new design
+
+### Fixed
+
+- Updated terminal demo block in README to show current version
+- Updated `terminal-demo.svg` version badge
+- Normalized Markdown table separator rows to `|---|---|` for consistent GitHub rendering
+- Synced version string across CLI, HTML reporter, and Markdown reporter
+
+---
+
 ## [0.1.1] — 2026-05-04
 
 ### Fixed

@@ -42,7 +42,7 @@
   <!-- Line 2: blank -->
   <!-- Line 3: header -->
   <text x="20" y="94" class="term-text cyan" font-weight="bold">  MCP Doctor</text>
-  <text x="115" y="94" class="term-text muted">v0.1.0</text>
+  <text x="115" y="94" class="term-text muted">v0.1.2</text>
   <text x="20" y="110" class="term-text muted">  Diagnose and fix broken MCP server configs</text>
 
   <!-- Line: scanning -->

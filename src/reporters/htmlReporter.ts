@@ -390,7 +390,7 @@ code{
     <div class="hdr-sub">Diagnose and fix broken MCP servers.</div>
   </div>
   <div class="hdr-meta">
-    <span class="pill">v0.1.1</span>
+    <span class="pill">v0.1.2</span>
     <span class="hdr-ts">${esc(report.timestamp)}</span>
   </div>
 </header>
@@ -481,7 +481,7 @@ code{
 </div>
 
 <footer class="footer">
-  <span>MCP Doctor v0.1.1 &mdash; <a href="https://github.com/stephenywilson/MCP-Doctor">github.com/stephenywilson/MCP-Doctor</a></span>
+  <span>MCP Doctor v0.1.2 &mdash; <a href="https://github.com/stephenywilson/MCP-Doctor">github.com/stephenywilson/MCP-Doctor</a></span>
   <span>Secrets masked &middot; No network access</span>
 </footer>
 

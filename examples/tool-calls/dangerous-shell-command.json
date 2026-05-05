@@ -1,0 +1,7 @@
+{
+  "server": "shell",
+  "tool": "execute_command",
+  "arguments": {
+    "command": "rm -rf /tmp/build-artifacts"
+  }
+}

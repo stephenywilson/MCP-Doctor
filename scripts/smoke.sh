@@ -26,25 +26,25 @@ echo "  ── MCP Doctor Smoke Test ──"
 echo ""
 
 # 1. Build
-echo "  [1/11] Build"
+echo "  [1/15] Build"
 npm run build 2>&1 | tail -5
 check "TypeScript compiled to dist/" "[ -f dist/index.js ]"
 
 # 2. Help
 echo ""
-echo "  [2/11] CLI --help"
+echo "  [2/15] CLI --help"
 check "--help exits 0" "node dist/index.js --help"
 
 # 3. Version
 echo ""
-echo "  [3/11] CLI --version"
+echo "  [3/15] CLI --version"
 VERSION_OUT=$(node dist/index.js --version 2>&1)
 check "--version outputs version string" "echo '$VERSION_OUT' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'"
 info "version: $VERSION_OUT"
 
 # 4. Scan broken Claude config
 echo ""
-echo "  [4/11] Scan broken-claude-config.json"
+echo "  [4/15] Scan broken-claude-config.json"
 node dist/index.js scan \
   --config examples/broken-claude-config.json \
   --out "$OUT_DIR" \
@@ -56,7 +56,7 @@ check "JSON report generated"     "[ -f '$OUT_DIR/mcp-doctor-report.json' ]"
 
 # 5. Scan invalid JSON
 echo ""
-echo "  [5/11] Scan invalid-json-example.json"
+echo "  [5/15] Scan invalid-json-example.json"
 node dist/index.js scan \
   --config examples/invalid-json-example.json \
   --out "$OUT_DIR/invalid" \
@@ -65,7 +65,7 @@ check "Invalid JSON scan completes" "[ -f '$OUT_DIR/invalid/MCP_DOCTOR_REPORT.md
 
 # 6. Scan missing-env-token
 echo ""
-echo "  [6/11] Scan missing-env-token.json"
+echo "  [6/15] Scan missing-env-token.json"
 node dist/index.js scan \
   --config examples/missing-env-token.json \
   --out "$OUT_DIR/env" \
@@ -74,7 +74,7 @@ check "Env token scan completes" "[ -f '$OUT_DIR/env/MCP_DOCTOR_REPORT.md' ]"
 
 # 7. Secrets masked in JSON output
 echo ""
-echo "  [7/11] Verify secrets are masked in JSON report"
+echo "  [7/15] Verify secrets are masked in JSON report"
 if [ -f "$OUT_DIR/mcp-doctor-report.json" ]; then
   JSON_CONTENT=$(cat "$OUT_DIR/mcp-doctor-report.json")
   if echo "$JSON_CONTENT" | grep -q '"GITHUB_TOKEN": "YOUR_TOKEN_HERE"'; then
@@ -91,7 +91,7 @@ UNSAFE_CFG="examples/safe-install-preview/unsafe-mcp-config.json"
 
 # 8. preview command
 echo ""
-echo "  [8/11] preview command"
+echo "  [8/15] preview command"
 PREVIEW_OUT=$(node dist/index.js preview "$UNSAFE_CFG" 2>&1)
 check "preview exits 0" "node dist/index.js preview '$UNSAFE_CFG'"
 check "preview detects HIGH risk" "echo '$PREVIEW_OUT' | grep -q 'HIGH'"
@@ -99,24 +99,23 @@ check "preview shows server names" "echo '$PREVIEW_OUT' | grep -q 'filesystem'"
 
 # 9. inspect command with --report
 echo ""
-echo "  [9/11] inspect command"
+echo "  [9/15] inspect command"
 node dist/index.js inspect "$UNSAFE_CFG" --report --out "$OUT_DIR/inspect" 2>&1 | head -20
-check "inspect exits 0"          "node dist/index.js inspect '$UNSAFE_CFG' --out '$OUT_DIR/inspect2'"
+check "inspect exits 0"              "node dist/index.js inspect '$UNSAFE_CFG' --out '$OUT_DIR/inspect2'"
 check "inspect --report writes file" "[ -f '$OUT_DIR/inspect/MCP_DOCTOR_SAFE_INSTALL_REPORT.md' ]"
 
 # 10. safe-config command
 echo ""
-echo "  [10/11] safe-config command"
+echo "  [10/15] safe-config command"
 node dist/index.js safe-config "$UNSAFE_CFG" --client claude --out "$OUT_DIR/safe" 2>&1 | head -20
-check "safe-config exits 0"      "node dist/index.js safe-config '$UNSAFE_CFG' --out '$OUT_DIR/safe2'"
-check "safe-config writes file"  "[ -f '$OUT_DIR/safe/MCP_DOCTOR_SAFE_CONFIG.example.json' ]"
+check "safe-config exits 0"     "node dist/index.js safe-config '$UNSAFE_CFG' --out '$OUT_DIR/safe2'"
+check "safe-config writes file" "[ -f '$OUT_DIR/safe/MCP_DOCTOR_SAFE_CONFIG.example.json' ]"
 
 # 11. Safe config output validation
 echo ""
-echo "  [11/11] Validate safe config output"
+echo "  [11/15] Validate safe config output"
 SAFE_JSON="$OUT_DIR/safe/MCP_DOCTOR_SAFE_CONFIG.example.json"
 if [ -f "$SAFE_JSON" ]; then
-  # Must be valid JSON
   if python3 -m json.tool "$SAFE_JSON" > /dev/null 2>&1; then
     green "Safe config is valid JSON"
     PASS=$((PASS+1))
@@ -124,7 +123,6 @@ if [ -f "$SAFE_JSON" ]; then
     red "Safe config is NOT valid JSON"
   fi
 
-  # Must not contain real secret values from the example
   SAFE_CONTENT=$(cat "$SAFE_JSON")
   if echo "$SAFE_CONTENT" | grep -q '"ghp_YOUR_TOKEN_HERE"'; then
     red "Secret value leaked into safe config!"
@@ -133,7 +131,6 @@ if [ -f "$SAFE_JSON" ]; then
     PASS=$((PASS+1))
   fi
 
-  # Must contain env var placeholders
   if echo "$SAFE_CONTENT" | grep -q '"\${'; then
     green "Safe config contains env var placeholders"
     PASS=$((PASS+1))
@@ -144,6 +141,47 @@ else
   red "Safe config file not found"
   FAIL=$((FAIL+3))
 fi
+
+TOOL_CALLS_DIR="examples/tool-calls"
+
+# 12. firewall init
+echo ""
+echo "  [12/15] firewall init"
+POLICY_TMP="$OUT_DIR/fw-policy.json"
+node dist/index.js firewall init --out "$POLICY_TMP" 2>&1 | head -5
+check "firewall init creates policy file" "[ -f '$POLICY_TMP' ]"
+check "policy file is valid JSON" "python3 -m json.tool '$POLICY_TMP'"
+
+# 13. firewall demo
+echo ""
+echo "  [13/15] firewall demo"
+node dist/index.js firewall demo --out "$OUT_DIR/fw-demo" 2>&1 | head -30
+check "firewall demo exits 0"    "node dist/index.js firewall demo --out '$OUT_DIR/fw-demo2'"
+check "firewall demo writes report" "[ -f '$OUT_DIR/fw-demo/MCP_TOOL_AUDIT_REPORT.md' ]"
+
+# 14. firewall audit mixed-batch
+echo ""
+echo "  [14/15] firewall audit mixed-batch.json"
+node dist/index.js firewall audit \
+  --file "$TOOL_CALLS_DIR/mixed-batch.json" \
+  --out "$OUT_DIR/fw-audit" 2>&1 | head -20
+check "firewall audit exits 0"      "node dist/index.js firewall audit --file '$TOOL_CALLS_DIR/mixed-batch.json' --out '$OUT_DIR/fw-audit2'"
+check "firewall audit writes report" "[ -f '$OUT_DIR/fw-audit/MCP_TOOL_AUDIT_REPORT.md' ]"
+
+# 15. Risk classification assertions
+echo ""
+echo "  [15/15] Risk classification assertions"
+
+ENV_OUT=$(node dist/index.js firewall audit --file "$TOOL_CALLS_DIR/critical-write-env.json" --out "$OUT_DIR/fw-env" 2>&1)
+check ".env write classified CRITICAL" "echo '$ENV_OUT' | grep -q 'CRITICAL'"
+check ".env write action is BLOCK"     "echo '$ENV_OUT' | grep -q 'BLOCK'"
+
+READ_OUT=$(node dist/index.js firewall audit --file "$TOOL_CALLS_DIR/safe-read-file.json" --out "$OUT_DIR/fw-read" 2>&1)
+check "safe read classified LOW"  "echo '$READ_OUT' | grep -q 'LOW'"
+check "safe read action is ALLOW" "echo '$READ_OUT' | grep -q 'ALLOW'"
+
+SHELL_OUT=$(node dist/index.js firewall audit --file "$TOOL_CALLS_DIR/dangerous-shell-command.json" --out "$OUT_DIR/fw-shell" 2>&1)
+check "dangerous shell is HIGH or CRITICAL" "echo '$SHELL_OUT' | grep -qE 'HIGH|CRITICAL'"
 
 # Summary
 echo ""

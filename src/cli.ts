@@ -12,8 +12,12 @@ import { ScanOptions } from './types.js';
 import { analyzeConfig } from './safe-install/risk-analyzer.js';
 import { generateSafeConfig, ClientTarget } from './safe-install/safe-config-generator.js';
 import { generateSafeInstallReport } from './safe-install/report-writer.js';
+import { parseToolCalls, auditBatch } from './firewall/auditor.js';
+import { loadPolicy, writeDefaultPolicy, POLICY_FILENAME } from './firewall/policy.js';
+import { generateAuditReport, terminalAuditResult } from './firewall/reporter.js';
+import { DEMO_EVENTS, DEMO_LABELS } from './firewall/demo.js';
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 
 function printLine(msg: string): void {
   process.stdout.write(msg + '\n');
@@ -439,6 +443,203 @@ export function buildCli(): typeof program {
       printLine('');
       printLine('  \x1b[33m⚠\x1b[0m  Review all placeholders before using this config in any AI tool.');
       printLine('  \x1b[2mThis file was not installed anywhere. You must copy it manually.\x1b[0m');
+      printLine('');
+    });
+
+  // ── firewall (new v0.3.0) ────────────────────────────────────────────────
+  const fw = program
+    .command('firewall')
+    .description('Tool call audit and firewall preview (v0.3.0)');
+
+  // firewall init
+  fw
+    .command('init')
+    .description(`Create a local policy file (${POLICY_FILENAME}) in the current directory`)
+    .option('--out <path>', 'output path for policy file', POLICY_FILENAME)
+    .action((opts: { out: string }) => {
+      const outPath = path.resolve(opts.out);
+      if (fs.existsSync(outPath)) {
+        printLine('');
+        printLine(`  \x1b[33m⚠\x1b[0m  Policy file already exists: ${outPath}`);
+        printLine('  Delete it first if you want to regenerate.');
+        printLine('');
+        return;
+      }
+      writeDefaultPolicy(outPath);
+      printLine('');
+      printLine(`  \x1b[32m✓\x1b[0m  Created: ${outPath}`);
+      printLine('');
+      printLine('  Edit this file to customise rules, sensitive paths, and default action.');
+      printLine('  Then run: mcp-doctor firewall audit --file <tool-call.json>');
+      printLine('');
+    });
+
+  // firewall audit
+  fw
+    .command('audit')
+    .description('Audit MCP tool call payloads from a file or stdin')
+    .option('--file <path>', 'JSON file containing one or more tool call events')
+    .option('--stdin', 'read tool call JSON from stdin')
+    .option('--policy <path>', 'path to a custom policy file')
+    .option('--out <directory>', 'output directory for audit report', '.')
+    .action(async (opts: { file?: string; stdin?: boolean; policy?: string; out: string }) => {
+      printLine('');
+      printLine(`  \x1b[1m\x1b[36mMCP Doctor\x1b[0m \x1b[2mv${VERSION}\x1b[0m  \x1b[1mTool Call Audit\x1b[0m`);
+      printLine('  Static analysis only. No tool calls are executed. No secrets are printed.');
+      printLine('');
+
+      let jsonText: string;
+      let source: string;
+
+      if (opts.stdin) {
+        printLine('  Reading from stdin...');
+        jsonText = await new Promise<string>((resolve, reject) => {
+          let buf = '';
+          process.stdin.on('data', (c: Buffer) => (buf += c.toString()));
+          process.stdin.on('end', () => resolve(buf));
+          process.stdin.on('error', reject);
+        });
+        source = '(stdin)';
+      } else if (opts.file) {
+        const filePath = path.resolve(opts.file);
+        if (!fs.existsSync(filePath)) {
+          printLine(`  \x1b[31m✗\x1b[0m  File not found: ${filePath}`);
+          process.exit(1); return;
+        }
+        jsonText = fs.readFileSync(filePath, 'utf8');
+        source = filePath;
+      } else {
+        printLine('  \x1b[31m✗\x1b[0m  Provide --file <path> or --stdin');
+        printLine('  Example: mcp-doctor firewall audit --file examples/tool-calls/mixed-batch.json');
+        process.exit(1); return;
+      }
+
+      let events;
+      try {
+        events = parseToolCalls(jsonText);
+      } catch (err: unknown) {
+        printLine(`  \x1b[31m✗\x1b[0m  ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1); return;
+      }
+
+      const { policy, source: policySource } = loadPolicy(opts.policy);
+      printLine(`  Source:  ${source}`);
+      printLine(`  Policy:  ${policySource}`);
+      printLine(`  Calls:   ${events.length}`);
+      printLine('');
+
+      const batch = auditBatch(events, policy, source, policySource);
+
+      for (let i = 0; i < batch.results.length; i++) {
+        printLine(terminalAuditResult(batch.results[i], i));
+        printLine('');
+      }
+
+      printLine(`  ${'─'.repeat(54)}`);
+      printLine('');
+
+      const sevCol = batch.overallSeverity === 'CRITICAL' ? '\x1b[31m'
+        : batch.overallSeverity === 'HIGH' ? '\x1b[33m'
+        : batch.overallSeverity === 'MEDIUM' ? '\x1b[33m'
+        : '\x1b[32m';
+
+      printLine(`  LOW: ${batch.severitySummary.LOW}  MEDIUM: ${batch.severitySummary.MEDIUM}  HIGH: ${batch.severitySummary.HIGH}  CRITICAL: ${batch.severitySummary.CRITICAL}`);
+      printLine(`  Verdict: ${sevCol}${batch.verdict}\x1b[0m`);
+      printLine('');
+
+      const outDir = path.resolve(opts.out);
+      fs.mkdirSync(outDir, { recursive: true });
+      const reportPath = path.join(outDir, 'MCP_TOOL_AUDIT_REPORT.md');
+      fs.writeFileSync(reportPath, generateAuditReport(batch), 'utf8');
+      printLine(`  \x1b[32m✓\x1b[0m  Report: ${reportPath}`);
+      printLine('');
+    });
+
+  // firewall demo
+  fw
+    .command('demo')
+    .description('Run built-in demo tool call cases and show audit results')
+    .option('--out <directory>', 'output directory for report', '.')
+    .action((opts: { out: string }) => {
+      printLine('');
+      printLine(`  \x1b[1m\x1b[36mMCP Doctor\x1b[0m \x1b[2mv${VERSION}\x1b[0m  \x1b[1mFirewall Demo\x1b[0m`);
+      printLine('  Built-in demo cases. No real tool calls are executed.');
+      printLine('');
+
+      const { policy, source: policySource } = loadPolicy();
+      printLine(`  Policy: ${policySource}`);
+      printLine('');
+
+      const batch = auditBatch(DEMO_EVENTS, policy, '(built-in demo)', policySource);
+
+      for (let i = 0; i < batch.results.length; i++) {
+        printLine(`  \x1b[2m${DEMO_LABELS[i]}\x1b[0m`);
+        printLine(terminalAuditResult(batch.results[i]));
+        printLine('');
+      }
+
+      printLine(`  ${'─'.repeat(54)}`);
+      printLine('');
+
+      const sevCol = batch.overallSeverity === 'CRITICAL' ? '\x1b[31m'
+        : batch.overallSeverity === 'HIGH' ? '\x1b[33m'
+        : '\x1b[32m';
+
+      printLine(`  LOW: ${batch.severitySummary.LOW}  MEDIUM: ${batch.severitySummary.MEDIUM}  HIGH: ${batch.severitySummary.HIGH}  CRITICAL: ${batch.severitySummary.CRITICAL}`);
+      printLine(`  Verdict: ${sevCol}${batch.verdict}\x1b[0m`);
+      printLine('');
+
+      const outDir = path.resolve(opts.out);
+      fs.mkdirSync(outDir, { recursive: true });
+      const reportPath = path.join(outDir, 'MCP_TOOL_AUDIT_REPORT.md');
+      fs.writeFileSync(reportPath, generateAuditReport(batch), 'utf8');
+      printLine(`  \x1b[32m✓\x1b[0m  Report: ${reportPath}`);
+      printLine('');
+    });
+
+  // firewall report — audit + always write report (alias convenience)
+  fw
+    .command('report')
+    .description('Audit a file and write MCP_TOOL_AUDIT_REPORT.md (same as audit + always writes)')
+    .option('--file <path>', 'JSON file containing tool call events (defaults to demo if omitted)')
+    .option('--policy <path>', 'path to a custom policy file')
+    .option('--out <directory>', 'output directory for report', '.')
+    .action((opts: { file?: string; policy?: string; out: string }) => {
+      printLine('');
+      printLine(`  \x1b[1m\x1b[36mMCP Doctor\x1b[0m \x1b[2mv${VERSION}\x1b[0m  \x1b[1mFirewall Report\x1b[0m`);
+      printLine('');
+
+      let events = DEMO_EVENTS;
+      let source = '(built-in demo)';
+
+      if (opts.file) {
+        const filePath = path.resolve(opts.file);
+        if (!fs.existsSync(filePath)) {
+          printLine(`  \x1b[31m✗\x1b[0m  File not found: ${filePath}`);
+          process.exit(1); return;
+        }
+        try {
+          events = parseToolCalls(fs.readFileSync(filePath, 'utf8'));
+          source = filePath;
+        } catch (err: unknown) {
+          printLine(`  \x1b[31m✗\x1b[0m  ${err instanceof Error ? err.message : String(err)}`);
+          process.exit(1); return;
+        }
+      }
+
+      const { policy, source: policySource } = loadPolicy(opts.policy);
+      const batch = auditBatch(events, policy, source, policySource);
+
+      const outDir = path.resolve(opts.out);
+      fs.mkdirSync(outDir, { recursive: true });
+      const reportPath = path.join(outDir, 'MCP_TOOL_AUDIT_REPORT.md');
+      fs.writeFileSync(reportPath, generateAuditReport(batch), 'utf8');
+
+      printLine(`  Source:  ${source}`);
+      printLine(`  Calls:   ${batch.totalCalls}`);
+      printLine(`  Verdict: ${batch.verdict}`);
+      printLine('');
+      printLine(`  \x1b[32m✓\x1b[0m  Report: ${reportPath}`);
       printLine('');
     });
 

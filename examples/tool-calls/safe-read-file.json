@@ -1,0 +1,7 @@
+{
+  "server": "filesystem",
+  "tool": "read_file",
+  "arguments": {
+    "path": "src/index.ts"
+  }
+}

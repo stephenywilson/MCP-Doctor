@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] — 2026-05-05
+
+### Added
+
+- **`mcp-doctor firewall init`** — Create a local policy file (`mcp-doctor.firewall.json`) with sensible defaults for sensitive paths and per-category rules.
+- **`mcp-doctor firewall audit --file <path>`** — Audit one or more MCP tool call payloads from a JSON file. Prints risk level, recommended action, and reasons per call. Writes `MCP_TOOL_AUDIT_REPORT.md`.
+- **`mcp-doctor firewall audit --stdin`** — Same as above, reading from stdin (pipe-friendly).
+- **`mcp-doctor firewall demo`** — Built-in demo covering: safe read (LOW/ALLOW), package.json write (CRITICAL/BLOCK), .env write (CRITICAL/BLOCK), `rm -rf` shell command (CRITICAL/BLOCK), network request with token (HIGH/BLOCK).
+- **`mcp-doctor firewall report`** — Run audit and always write the Markdown report. Defaults to demo if no `--file` given.
+- **Risk classifier** (`src/firewall/classifier.ts`) — Classifies tool calls into categories (READ/WRITE/DELETE/EXECUTE/SECRET/NETWORK/DATABASE/GIT/UNKNOWN) and severity levels (LOW/MEDIUM/HIGH/CRITICAL). Detects sensitive paths (`.env`, `.ssh`, `package.json`, etc.), sensitive arg keys (`token`, `api_key`, `secret`, etc.), and dangerous command patterns (`rm -rf`, `eval`, `curl | bash`, etc.).
+- **Policy engine** (`src/firewall/policy.ts`) — Loads `mcp-doctor.firewall.json` from CWD. Falls back to built-in defaults. First-match rule wins.
+- **Audit report writer** (`src/firewall/reporter.ts`) — Generates `MCP_TOOL_AUDIT_REPORT.md` with per-call table, findings, verdict, and next steps.
+- **Demo data** (`src/firewall/demo.ts`) — Five built-in tool call scenarios.
+- **Example payloads** (`examples/tool-calls/`) — `safe-read-file.json`, `risky-write-package-json.json`, `critical-write-env.json`, `dangerous-shell-command.json`, `network-request-with-token.json`, `mixed-batch.json`.
+- **Docs** — `docs/tool-call-audit.md`, `docs/firewall-policy.md`.
+- Smoke test expanded from 19 to 30 assertions.
+
+### Changed
+
+- README repositioned: "Diagnose, safely install, and audit MCP servers."
+- Version bumped to 0.3.0 across CLI, reporters, package.json.
+
+### Not included in v0.3.0
+
+- Live MCP proxy (planned for v0.4.0)
+- Real-time allow/ask/block enforcement (planned for v0.4.0)
+- Cloud or account features (out of scope)
+
+---
+
 ## [0.2.0] — 2026-05-05
 
 ### Added

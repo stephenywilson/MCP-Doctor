@@ -51,7 +51,7 @@ export function generateMarkdown(report: ScanReport): string {
   lines.push('# MCP Doctor Report');
   lines.push('');
   lines.push(`> Generated: ${report.timestamp}`);
-  lines.push(`> MCP Doctor v0.2.0 — https://github.com/stephenywilson/MCP-Doctor`);
+  lines.push(`> MCP Doctor v0.3.0 — https://github.com/stephenywilson/MCP-Doctor`);
   lines.push('');
 
   lines.push('---');

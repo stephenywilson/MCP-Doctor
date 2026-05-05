@@ -1,6 +1,6 @@
 # MCP Doctor
 
-Diagnose, inspect, and safely configure MCP servers.
+Diagnose, safely install, and audit MCP servers.
 
 MCP Doctor helps developers debug, risk-preview, and safely configure MCP servers before installing them in Claude Desktop, Cursor, VS Code, Cline, Claude Code, Windsurf, and other AI tools.
 
@@ -17,6 +17,38 @@ It checks the real failure points:
 - unsafe filesystem access (home directory, root, credentials folders)
 - high-privilege tokens and secrets in config
 - risky server permissions before you install them
+
+## v0.3.0 — Tool Call Audit / Firewall Preview
+
+Before connecting an MCP server to Claude, Cursor, or VS Code, audit what it wants to do:
+
+```bash
+# Create a local firewall policy
+mcp-doctor firewall init
+
+# Run built-in demo — see severity levels in action
+mcp-doctor firewall demo
+
+# Audit a tool call payload from file
+mcp-doctor firewall audit --file examples/tool-calls/mixed-batch.json
+
+# Audit from stdin (pipe from any source)
+cat my-tool-calls.json | mcp-doctor firewall audit --stdin
+
+# Generate an audit report
+mcp-doctor firewall report --file examples/tool-calls/mixed-batch.json
+```
+
+**MCP Doctor Tool Call Audit:**
+- Classifies every tool call as LOW / MEDIUM / HIGH / CRITICAL
+- Detects writes to `.env`, `.ssh`, secrets directories, package files
+- Flags shell execution, `rm -rf`, credential arguments, network calls with tokens
+- Recommends ALLOW / ASK / BLOCK per call based on your policy file
+- Writes `MCP_TOOL_AUDIT_REPORT.md`
+
+**v0.3.0 is an audit preview, not a live firewall.** Tool calls are analysed statically — nothing is executed or blocked at runtime. v0.4.0 will add a live proxy with real-time allow/ask/block controls.
+
+---
 
 ## v0.2.0 — Safe Install Preview
 
@@ -295,7 +327,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 
 ## Roadmap
 
-### v0.2.0 (current)
+### v0.3.0 (current)
 - [x] Auto-detect common MCP config locations
 - [x] Parse and validate JSON configs
 - [x] Diagnose 20+ failure patterns
@@ -308,7 +340,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 - [x] JSON report (--json flag)
 - [x] GitHub Actions CI
 
-### v0.2.1 ideas
+### v0.4.0 ideas
 - [ ] VS Code / Cline config detection
 - [ ] Windsurf config detection
 - [ ] Detect common MCP package names and verify they exist on npm/PyPI

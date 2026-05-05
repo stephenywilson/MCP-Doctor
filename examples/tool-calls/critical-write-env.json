@@ -1,0 +1,8 @@
+{
+  "server": "filesystem",
+  "tool": "write_file",
+  "arguments": {
+    "path": ".env",
+    "content": "API_KEY=example-not-a-real-key"
+  }
+}

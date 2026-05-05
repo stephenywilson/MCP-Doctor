@@ -1,6 +1,6 @@
 {
   "name": "@stephenywilson/mcp-doctor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Diagnose, inspect, and safely configure MCP servers for Claude Desktop, Cursor, VS Code, Cline, and other AI tools",
   "type": "module",
   "main": "dist/index.js",

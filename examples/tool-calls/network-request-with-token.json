@@ -1,0 +1,8 @@
+{
+  "server": "browser",
+  "tool": "http_request",
+  "arguments": {
+    "url": "https://api.example.com/data",
+    "token": "fake_token_for_demo_only"
+  }
+}

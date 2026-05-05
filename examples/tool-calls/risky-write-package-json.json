@@ -1,0 +1,8 @@
+{
+  "server": "filesystem",
+  "tool": "write_file",
+  "arguments": {
+    "path": "package.json",
+    "content": "{ \"name\": \"my-app\", \"scripts\": { \"start\": \"node index.js\" } }"
+  }
+}

@@ -16,7 +16,7 @@ MCP Doctor v0.3.0 gives you a local, offline preview of what a set of tool calls
 - Does not send data to external services
 - Does not modify Claude Desktop, Cursor, or VS Code config
 
-This is an audit preview. A future v0.4.0 release may add live proxy interception.
+This is an audit preview. A future release may add live proxy interception.
 
 ---
 
@@ -159,4 +159,4 @@ Safe Install checks configuration risk. Tool Call Audit checks runtime behaviour
 | Version | Feature |
 | --- | --- |
 | v0.3.0 | Static audit preview (this version) |
-| v0.4.0 | Live MCP proxy with allow/ask/block controls |
+| Future | Live MCP proxy with allow/ask/block controls |

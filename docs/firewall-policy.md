@@ -103,7 +103,7 @@ Each rule has:
 | `ask` | Flagged as requiring human review |
 | `block` | Classified as should be blocked |
 
-In v0.3.0, no live blocking occurs — actions are recommendations in the audit report. A future v0.4.0 proxy will enforce them at runtime.
+In v0.3.0, no live blocking occurs — actions are recommendations in the audit report. A future proxy may enforce them at runtime.
 
 ---
 

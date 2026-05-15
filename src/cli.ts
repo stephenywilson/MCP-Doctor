@@ -16,8 +16,10 @@ import { parseToolCalls, auditBatch } from './firewall/auditor.js';
 import { loadPolicy, writeDefaultPolicy, POLICY_FILENAME } from './firewall/policy.js';
 import { generateAuditReport, terminalAuditResult } from './firewall/reporter.js';
 import { DEMO_EVENTS, DEMO_LABELS } from './firewall/demo.js';
+import { locateFirewallConfigFiles, scanFirewallConfigs } from './firewall/configScanner.js';
+import { generateFirewallJson, generateFirewallMarkdown } from './firewall/configReport.js';
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 function printLine(msg: string): void {
   process.stdout.write(msg + '\n');
@@ -46,6 +48,15 @@ function riskColor(level: string): string {
 }
 
 function resetColor(): string { return '\x1b[0m'; }
+
+function firewallRiskColor(level: string): string {
+  switch (level) {
+    case 'Critical': return '\x1b[31m';
+    case 'High': return '\x1b[31m';
+    case 'Medium': return '\x1b[33m';
+    default: return '\x1b[32m';
+  }
+}
 
 function loadConfigForPreview(configArg?: string): {
   configPath: string;
@@ -450,6 +461,87 @@ export function buildCli(): typeof program {
   const fw = program
     .command('firewall')
     .description('Tool call audit and firewall preview (v0.3.0)');
+
+  // ── config-audit (new) ───────────────────────────────────────────────────
+  program
+    .command('config-audit')
+    .description('Scan MCP server configuration files for risky permissions')
+    .option('--config <path...>', 'scan one or more specific MCP config files')
+    .option('--report-dir <directory>', 'output directory for config audit reports', '.')
+    .action((opts: { config?: string[]; reportDir: string }) => {
+      printLine('');
+      printLine(`  \x1b[1m\x1b[36mMCP Doctor\x1b[0m \x1b[2mv${VERSION}\x1b[0m  \x1b[1mConfig Audit\x1b[0m`);
+      printLine('  Scans MCP server configurations for risky permissions. Local-only. No telemetry.');
+      printLine('');
+
+      const report = scanFirewallConfigs({
+        configPaths: opts.config ?? [],
+        outputDir: opts.reportDir,
+      });
+
+      if (report.configs.length === 0) {
+        printLine('  \x1b[33m⚠\x1b[0m  No MCP config files were found.');
+        printLine('');
+        printLine('  Try scanning a config explicitly:');
+        printLine('    mcp-doctor config-audit --config ./mcp-config.json');
+        printLine('');
+        printLine('  Common locations checked include:');
+        for (const candidate of locateFirewallConfigFiles(opts.config ?? []).slice(0, 8)) {
+          printLine(`    ${candidate.clientLabel}: ${candidate.path}`);
+        }
+        printLine('');
+        process.exit(0);
+      }
+
+      const color = firewallRiskColor(report.riskLevel);
+      printLine(`  Configs scanned: ${report.configs.length}`);
+      printLine(`  Servers found:    ${report.servers.length}`);
+      printLine(`  Findings:         ${report.findings.length}`);
+      printLine(`  Risk score:       ${color}\x1b[1m${report.riskScore}/100 ${report.riskLevel}\x1b[0m`);
+      printLine('');
+
+      if (report.servers.length > 0) {
+        printLine('  Detected servers:');
+        for (const server of report.servers) {
+          const srvColor = firewallRiskColor(server.riskLevel);
+          printLine(`    ${srvColor}${server.riskLevel.padEnd(8)}\x1b[0m ${server.name}  \x1b[2m${server.command || '(missing command)'}\x1b[0m`);
+        }
+        printLine('');
+      }
+
+      const severityOrder = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+      for (const severity of severityOrder) {
+        const findings = report.findings.filter((finding) => finding.severity === severity);
+        if (findings.length === 0) continue;
+        printLine(`  ${severity}:`);
+        for (const finding of findings.slice(0, 6)) {
+          const server = finding.server ? ` \x1b[2m[${finding.server}]\x1b[0m` : '';
+          printLine(`    - ${finding.title}${server}`);
+          printLine(`      \x1b[2m${finding.remediation}\x1b[0m`);
+        }
+        if (findings.length > 6) {
+          printLine(`    - ... and ${findings.length - 6} more`);
+        }
+        printLine('');
+      }
+
+      printLine('  Recommendations:');
+      for (const rec of report.recommendations.slice(0, 6)) {
+        printLine(`    • ${rec}`);
+      }
+      printLine('');
+
+      const outDir = path.resolve(opts.reportDir);
+      fs.mkdirSync(outDir, { recursive: true });
+      const mdPath = path.join(outDir, 'MCP_CONFIG_AUDIT_REPORT.md');
+      const jsonPath = path.join(outDir, 'mcp-config-audit-report.json');
+      fs.writeFileSync(mdPath, generateFirewallMarkdown(report), 'utf8');
+      fs.writeFileSync(jsonPath, generateFirewallJson(report), 'utf8');
+      printLine('  Reports written:');
+      printLine(`    \x1b[32m✓\x1b[0m  Markdown: ${mdPath}`);
+      printLine(`    \x1b[32m✓\x1b[0m  JSON:     ${jsonPath}`);
+      printLine('');
+    });
 
   // firewall init
   fw

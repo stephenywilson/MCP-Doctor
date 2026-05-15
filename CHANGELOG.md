@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] — 2026-05-15
+
+### Added
+
+- **`mcp-doctor config-audit`** scans MCP server configuration files for security risks without changing the existing v0.3.0 `firewall` command group.
+- Config audit locates Claude Desktop, Cursor, local, and project-level MCP JSON config files where possible.
+- Added config risk scoring with Low, Medium, High, and Critical bands:
+  - 0-39 Low
+  - 40-69 Medium
+  - 70-84 High
+  - 85-100 Critical
+- Added Markdown and JSON config audit reports:
+  - `MCP_CONFIG_AUDIT_REPORT.md`
+  - `mcp-config-audit-report.json`
+- Added detection for shell execution, suspicious command patterns, plaintext secrets, home/root filesystem access, network-connected servers, local executables, unpinned package execution, sensitive environment variable references, broad paths, missing descriptions, unknown sources, and missing allowlist-like policy.
+- Added `examples/risky-config-audit-config.json`, `docs/config-audit.md`, and `docs/sample-config-audit-report.md`.
+
+### Security
+
+- Config audit scanning is local-first, does not execute MCP servers, does not call external APIs, and has no telemetry.
+- JSON reports redact environment variable values.
+- Existing `mcp-doctor firewall init/audit/demo/report` tool-call audit commands remain available.
+
+---
+
 ## [0.3.0] — 2026-05-05
 
 ### Added
@@ -31,8 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Not included in v0.3.0
 
-- Live MCP proxy (planned for v0.4.0)
-- Real-time allow/ask/block enforcement (planned for v0.4.0)
+- Live MCP proxy (future)
+- Real-time allow/ask/block enforcement (future)
 - Cloud or account features (out of scope)
 
 ---

@@ -46,7 +46,73 @@ mcp-doctor firewall report --file examples/tool-calls/mixed-batch.json
 - Recommends ALLOW / ASK / BLOCK per call based on your policy file
 - Writes `MCP_TOOL_AUDIT_REPORT.md`
 
-**v0.3.0 is an audit preview, not a live firewall.** Tool calls are analysed statically — nothing is executed or blocked at runtime. v0.4.0 will add a live proxy with real-time allow/ask/block controls.
+**Tool Call Audit is an audit preview, not a live firewall.** Tool calls are analysed statically — nothing is executed or blocked at runtime. A future release may add a live proxy with real-time allow/ask/block controls.
+
+---
+
+## MCP Config Audit
+
+MCP Doctor includes a config audit mode for scanning risky MCP server configurations.
+
+```bash
+mcp-doctor config-audit
+
+# Scan a specific config file
+mcp-doctor config-audit --config examples/risky-config-audit-config.json
+```
+
+Config audit scans:
+
+- Claude Desktop MCP config
+- Cursor MCP config
+- local MCP JSON config files
+- project-level MCP config files such as `.mcp.json` and `.cursor/mcp.json`
+- explicit config paths passed with `--config`
+
+MCP configs can be risky because they can grant an AI tool access to local files, shell commands, network services, and API credentials. A small JSON entry can expose the home directory, run an unpinned package through `npx`, launch a shell wrapper, or store tokens in plaintext.
+
+Sample output:
+
+```text
+MCP Doctor v0.4.0  Config Audit
+Scans MCP server configurations for risky permissions. Local-only. No telemetry.
+
+Configs scanned: 1
+Servers found:    3
+Findings:         12
+Risk score:       100/100 Critical
+
+Detected servers:
+  Critical dangerous-shell  bash
+  Critical broad-filesystem npx
+  High     github-unpinned  npx
+
+Reports written:
+  Markdown: MCP_CONFIG_AUDIT_REPORT.md
+  JSON:     mcp-config-audit-report.json
+```
+
+Reports include scanned config files, detected MCP servers, risk score, risk level, findings grouped by severity, remediation suggestions, and safe configuration recommendations.
+
+Risk score ranges:
+
+| Score | Level |
+| --- | --- |
+| 0-39 | Low |
+| 40-69 | Medium |
+| 70-84 | High |
+| 85-100 | Critical |
+
+Privacy note:
+
+MCP Doctor runs locally and does not send your MCP configuration, API keys, or project files to any external service.
+
+MCP Doctor is local-first, has no telemetry, does not call external APIs for config auditing, and never executes MCP server commands during the scan.
+
+More detail:
+
+- [Config Audit docs](docs/config-audit.md)
+- [Sample Config Audit report](docs/sample-config-audit-report.md)
 
 ---
 
@@ -327,7 +393,7 @@ See [examples/README.md](examples/README.md) for expected findings.
 
 ## Roadmap
 
-### v0.3.0 (current)
+### v0.4.0 (current)
 - [x] Auto-detect common MCP config locations
 - [x] Parse and validate JSON configs
 - [x] Diagnose 20+ failure patterns
@@ -338,16 +404,18 @@ See [examples/README.md](examples/README.md) for expected findings.
 - [x] Markdown report
 - [x] HTML report (dark theme, score card, server cards)
 - [x] JSON report (--json flag)
+- [x] Tool Call Audit / Firewall Preview
+- [x] Config Audit for MCP server configuration security scanning
 - [x] GitHub Actions CI
 
-### v0.4.0 ideas
+### Future ideas
 - [ ] VS Code / Cline config detection
 - [ ] Windsurf config detection
 - [ ] Detect common MCP package names and verify they exist on npm/PyPI
 - [ ] Suggested config snippets with absolute paths pre-filled
 - [ ] `mcp-doctor fix --dry-run` preview mode
 
-### v0.2.0 ideas
+### Later ideas
 - [ ] Interactive fix wizard
 - [ ] Watch mode for config changes
 - [ ] Docker-based MCP server checks

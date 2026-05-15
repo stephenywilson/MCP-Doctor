@@ -10,6 +10,11 @@ npm-debug.log*
 MCP_DOCTOR_REPORT.md
 mcp-doctor-report.html
 mcp-doctor-report.json
+MCP_TOOL_AUDIT_REPORT.md
+MCP_CONFIG_AUDIT_REPORT.md
+mcp-config-audit-report.json
+MCP_DOCTOR_SAFE_INSTALL_REPORT.md
+MCP_DOCTOR_SAFE_CONFIG.example.json
 *.tgz
 .env
 .env.local
